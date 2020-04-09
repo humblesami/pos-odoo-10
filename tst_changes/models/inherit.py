@@ -44,7 +44,8 @@ class TSTInheritPosOrder(models.Model):
         getCreate = super(TSTInheritPosOrder, self).create(values)
         if values['reading_id']:
             self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
-        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
+        # sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
+        sms_template = None
         if sms_template:
             body = sms_template.sms_html
 

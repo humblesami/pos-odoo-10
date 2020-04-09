@@ -1,6 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-tst_customer_cars,tst_customer cars,model_user_cars,tst_changes.dock_group_worker,1,1,1,1
-tst_cars_readings,tst_cars readings,model_user_cars_readings,tst_changes.dock_group_worker,1,1,1,1
-tst_table_employees,tst_table employees,model_tst_table_employees,tst_changes.dock_group_worker,1,1,1,1
-tst_car_maintain_history,tst_maintain history,model_tst_car_maintain_history,tst_changes.dock_group_worker,1,1,1,1
-tst_user_cars_brands,tst_car_brand history,model_user_cars_brands,tst_changes.dock_group_worker,1,1,1,1
