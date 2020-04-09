@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="assets" inherit_id="point_of_sale.assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/tst_changes/static/src/js/tst_car_changes.js"></script>
+                <link rel="stylesheet" href="/tst_changes/static/src/css/tst_car_changes.css" />
+                <link rel="stylesheet" href="/tst_changes/static/src/css/jquery-ui.css" />
+            </xpath>
+        </template>
+        <template id="assets_common" name="invoice_receipt assets" inherit_id="report.assets_common">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/tst_changes/static/src/css/pos_style.css" media="print" />
+            </xpath>
+        </template>
+        <template id="assets_common_web" name="invoice_receipt assets" inherit_id="web.assets_common">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/tst_changes/static/src/css/pos_style.css" media="print" />
+            </xpath>
+        </template>
+    </data>
+</odoo>
