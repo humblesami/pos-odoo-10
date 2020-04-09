@@ -8,7 +8,7 @@
         </record>
         <record id="dock_group_worker" model="res.groups">
             <field name="name">Dock Admin</field>
-            <field name="category_id" ref="dock_groups_rights"/>
+            <field name="category_id" ref="tst_changes.dock_groups_rights"/>
         </record>
     </data>
 </odoo>

@@ -1,8 +1,44 @@
+/* --- Fonts --- */
 
 @font-face{
     font-family: 'Inconsolata';
     src: url(../fonts/Inconsolata.otf);
 }
+
+/* --- Styling of OpenERP Elements --- */
+/* .ui-dialog, .modal-dialog {
+    background: white;
+    padding: 10px;
+    border-radius: 3px;
+    font-family: sans-serif;
+    box-shadow: 0px 10px 40px rgba(0,0,0,0.4);
+    position: absolute;
+    top: 30px;
+    height: 400px;
+    overflow: scroll;
+}
+.ui-dialog button, .modal-dialog button {
+    padding: 8px;
+    min-width: 48px;
+}
+.ui-dialog .ui-icon-closethick{
+    float: right;
+}
+div.modal.in {
+    position: absolute;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 10px 20px black;
+    border-radius: 3px;
+    max-width: 600px;
+    max-height: 400px;
+    margin-top: -200px;
+    margin-left: -300px;
+    top: 50%;
+    left: 50%;
+} */
+
+/* --- Generic Restyling and Resets --- */
 
 html {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -16,6 +52,22 @@ table {
 td {
     padding: 0px;
 }
+
+/* .oe_hidden{
+    display: none !important;
+}
+.oe_invisible{
+    visibility: hidden !important;
+}
+.clearfix:after {
+    content:" ";
+    display: block;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+    clear: both;
+} */
+
 
 .pos input::-webkit-outer-spin-button,
 .pos input::-webkit-inner-spin-button {
