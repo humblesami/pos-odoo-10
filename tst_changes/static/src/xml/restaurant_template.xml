@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="tst_res_template" inherit_id="pos_restaurant.template">
+    <t t-name="SingleTableTSTData">
+        <div class="table-related-information" t-att-table-id="widget.table.id">
+            <div style="width:50%;text-align:left;float:left;margin-bottom:5px">
+                <t t-if="widget.table.currentCustomer"><div style="margin-left:5px"><t t-esc="widget.table.currentCustomer['name']" /></div></t>
+                <t t-if="widget.table.currentCar"><div style="margin-left:5px"><t t-esc="widget.table.currentCar['vehicle_no']" /></div></t>
+            </div>
+            <div style="width:50%;text-align:right;float:left;margin-bottom:5px">
+                <t t-if="widget.table.selected_employees">
+                    <t t-foreach="widget.table.selected_employees" t-as="selEmp">
+                        <t t-foreach="widget.pos.employees" t-as="aEmp">
+                            <t t-if="aEmp.id==selEmp">
+                                <div style="margin-right:5px"><t  t-esc="aEmp.name" /></div>
+                            </t>
+                        </t>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+    <t t-extend="PrintBillButton">
+        <t t-jquery=".control-button.order-printbill" t-operation="replace">
+            <span class="control-button order-printbill">
+                <i class="fa fa-print"></i>
+                Temp BILL
+            </span>
+        </t>
+    </t>
+    <t t-extend="TableGuestsButton">
+        <t t-jquery=".control-button" t-operation="replace">
+            <div class='control-button' style="display:none">
+                <span class='control-button-number'>
+                    <t t-esc="widget.guests()" />
+                </span>
+                Guests
+            </div>
+        </t>
+    </t>
+</templates>

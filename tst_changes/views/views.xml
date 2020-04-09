@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+        <record model="ir.ui.view" id="view_partner_tree">
+            <field name="name">res.partner.tree.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='phone']" position="before">
+                    <field name="mobile" />
+                </xpath>
+            </field>
+        </record>
+		<record id="tst_res_partner" model="ir.ui.view">
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/notebook/page[last()]" position="after">
+                    <page string="Customer Cars">
+                        <group string="Enter Customer Cars">
+                            <field name="cars_id" nolabel="1">
+                                <tree>
+                                    <field name="name" />
+                                    <field name="car_brand" />
+                                    <field name="car_model" />
+                                    <field name="vehicle_no" />
+                                    <field name="car_status" />
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+        <record id="tst_view_pos_pos_form" model="ir.ui.view">
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='extra']" position="before">
+                    <page string="Customer Car">
+                        <group>
+                            <group>
+                                <field name="car_id" />
+                                <field name="per_day_reading" />
+                                <field name="current_readaing" />
+                            </group>
+                            <group>
+                                <field name="next_oil_change_km" />
+                                <field name="next_oil_change_date" />
+                                <field name="car_per_day_read_expect" />
+                            </group>
+                        </group>
+                        <group string="Employees Worked">
+                            <field name="employees_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="emp_id" />
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+        <record id="tst_view_employee_form" model="ir.ui.view">
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='address_id']" position="before">
+                    <field name="is_dock_user" />
+                </xpath>
+            </field>
+        </record>
+        <record id="tst_pos_config_form" model="ir.ui.view">
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_config_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='receipt_header']" position="before">
+                    <field name="reciept_logo" widget='image' />
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="tst_action_batch_action_dialogue">
+            <field name="name">Car Maintainence History</field>
+            <field name="res_model">tst.car.maintain.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create"></p>
+			</field>
+        </record>
+		<record model="ir.ui.view" id="tst_action_batch_action_dialogue_form">
+			<field name="name">Car Maintainence History</field>
+			<field name="model">tst.car.maintain.history</field>
+			<field name="type">form</field>
+			<field name="arch" type="xml">
+				<form string="Confirm dialog">
+			 		<group>
+                        <group>
+                            <field name="car_id" required="1" />
+                            <field name="show_price_flag" />
+                        </group>
+                    </group>
+			 		<footer>
+						<button class="oe_highlight" type="object" name="print_report" string="Print Report" />
+						<button string="Cancel" class="btn-default" special="cancel" />
+					</footer>
+				</form>
+			</field>
+		</record>
+        <menuitem id="tst_menu_point_rep" name="Car Maintenance History" parent="point_of_sale.menu_point_root" sequence="99" action="tst_action_batch_action_dialogue" />
+        <record id="tst_report_saledetails_register" model="ir.actions.report.xml">
+            <field name="name">Car Maintainence History</field>
+            <field name="model">tst.car.maintain.history</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">tst_changes.tst_report_saledetails</field>
+        </record>
+        <record id="tst_changes_product_template_inherit_form" model="ir.ui.view">
+			<field name="model">product.template</field>
+			<field name="inherit_id" ref="product.product_template_only_form_view"/>
+			<field name="arch" type="xml">
+				<xpath expr="//page[@name='general_information']" position="after">
+                    <page string="POS Discount">
+                        <group string="Discount">
+                            <group>
+                                <field name="pos_discount_apply" widget="radio" />
+                                <field name="product_disc" />
+                                <field name="product_disc_percent" />
+                                <field name="product_disc_percentage" />
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+			</field>
+		</record>
+        <record id="tst_product_product_form" model="ir.ui.view">
+			<field name="model">product.product</field>
+			<field name="inherit_id" ref="product.product_normal_form_view"/>
+			<field name="arch" type="xml">
+				<xpath expr="//page[@name='general_information']" position="after">
+                    <page string="POS Discount">
+                        <group>
+                            <group>
+                                <field name="pos_discount_apply" widget="radio" />
+                                <field name="product_disc" />
+                                <field name="product_disc_percent" />
+                                <field name="product_disc_percentage" />
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+			</field>
+		</record>
+    </data>
+</odoo>
