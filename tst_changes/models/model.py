@@ -5,7 +5,19 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 class TSTMyCars(models.Model):
     _name = 'user.cars'
-    _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
+    # _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
+
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        print datetime.now()
+        print limit
+        if len(domain) > 1:
+            if domain[1][0] == 'limit':
+                limit = domain[1][2]
+                domain = domain[:-1]
+        # limit = 20
+        res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
+        print(datetime.now())
+        return res
 
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=100):
@@ -96,12 +108,12 @@ class TSTMyCars(models.Model):
                 rec.partner_mobile = rec.partner_id.phone
 
     name = fields.Char("Car ID")
-    car_brand = fields.Many2one("user.cars.brands", string="Car Brand", required=True, default='')
-    car_model = fields.Char("Car Model")
+    car_brand = fields.Many2one("user.cars.brands", string="Car Brand", required=False)
+    car_model = fields.Integer("Car Model")
     vehicle_no = fields.Char("Vehicle #", required=True)
-    car_status = fields.Selection([('active', 'Activate'),('deactive','Deactivate')], string="Car Status", required=True, default='active')
-    partner_id = fields.Many2one('res.partner', 'Customer', domain="[('customer','=',True)]", required=True)
-    partner_mobile = fields.Char('Customer Mobile', compute=get_partner_mobile, store=True)
+    car_status = fields.Selection([('active', 'Activate'),('deactive','Deactivate')], string="Car Status", required=False, default='active')
+    partner_id = fields.Many2one('res.partner', 'Customer', domain="[('customer','=',True)]", required=False)
+    partner_mobile = fields.Char('Customer Mobile')
     car_readaing_per_day = fields.Integer('Car Reading Per Day (KM)')
     oil_change_after_readaing = fields.Integer('Oil Change After Reading')
     per_day_reading = fields.One2many("user.cars.readings",'car_id',string="Car Readings")

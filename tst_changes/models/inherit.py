@@ -6,8 +6,8 @@ from datetime import timedelta
 
 class ResPartnerTSTInherit(models.Model):
     _inherit = 'res.partner'
-
     cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
+
 
 class TSTInheritPosOrderLine(models.Model):
     _inherit = "pos.order.line"
@@ -16,6 +16,7 @@ class TSTInheritPosOrderLine(models.Model):
         if self.price_unit and self.discount:
             getit = (self.price_unit / 100) * self.discount
             return getit
+
 
 class TSTInheritPosOrder(models.Model):
     _inherit = "pos.order"
