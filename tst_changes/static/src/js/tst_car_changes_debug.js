@@ -21,8 +21,24 @@ var RestaurantFloor = require('pos_restaurant.floors');
 var ScreenWidget = screens.ClientListScreenWidget;
 var PaymentScreenWidget = screens.PaymentScreenWidget;
 
-
-var framework = require('web.framework');
+var Mutex = utils.Mutex;
+var PosDB = require('point_of_sale.DB');
+var devices = require('point_of_sale.devices');
+var OrderCollection = Backbone.Collection.extend({
+    model: pos_models.Order,
+});
+//function load_all_cars(){
+//    try{
+//    console.log(4356007);
+//        var pos_instance = new pos_models.PosModel();
+//        console.log(4356);
+//        console.log(pos_instance.models);
+//    }
+//    catch(er){
+//        console.log(er)
+//    }
+//}
+//load_server_data();
 pos_models.PosModel = pos_models.PosModel.extend({
     set_table: function(table) {
         if (!table) { // no table ? go back to the floor plan, see ScreenSelector
@@ -59,7 +75,59 @@ pos_models.PosModel = pos_models.PosModel.extend({
                 }
             }
         },
+    initialize: function(session, attributes) {
+        Backbone.Model.prototype.initialize.call(this, attributes);
+        console.log(32000346);
+        var  self = this;
+        this.flush_mutex = new Mutex();                   // used to make sure the orders are sent to the server once at time
+        this.chrome = attributes.chrome;
+        this.gui    = attributes.gui;
 
+        this.proxy = new devices.ProxyDevice(this);              // used to communicate to the hardware devices via a local proxy
+        this.barcode_reader = new devices.BarcodeReader({'pos': this, proxy:this.proxy});
+
+        this.proxy_queue = new devices.JobQueue();           // used to prevent parallels communications to the proxy
+        this.db = new PosDB();                       // a local database used to search trough products and categories & store pending orders
+        this.debug = core.debug; //debug mode
+
+        // Business data; loaded from the server at launch
+        this.company_logo = null;
+        this.company_logo_base64 = '';
+        this.currency = null;
+        this.shop = null;
+        this.company = null;
+        this.user = null;
+        this.users = [];
+        this.partners = [];
+        this.cashier = null;
+        this.cashregisters = [];
+        this.taxes = [];
+        this.pos_session = null;
+        this.config = null;
+        this.units = [];
+        this.units_by_id = {};
+        this.pricelist = null;
+        this.order_sequence = 1;
+        window.posmodel = this;
+        this.set({
+            'synch':            { state:'connected', pending:0 },
+            'orders':           new OrderCollection(),
+            'selectedOrder':    null,
+            'selectedClient':   null,
+        });
+        this.get('orders').bind('remove', function(order,_unused_,options){
+            self.on_removed_order(order,options.index,options.reason);
+        });
+        function update_client() {
+            var order = self.get_order();
+            this.set('selectedClient', order ? order.get_client() : null );
+        }
+        this.get('orders').bind('add remove change', update_client, this);
+        this.bind('change:selectedOrder', update_client, this);
+        this.ready = this.load_server_data().then(function(){
+            return self.after_load_server_data();
+        });
+    },
     load_server_data: function(){
         var self = this;
         var loaded = new $.Deferred();
@@ -134,15 +202,6 @@ pos_models.PosModel = pos_models.PosModel.extend({
     },
 });
 
-function load_all_cars(){
-    try{
-        var pos_instance = new pos_models.PosModel();
-//        console.log(pos_instance.models);
-    }
-    catch(er){
-        console.log(er)
-    }
-}
 
 //    pos_models.load_models({
 //        model:  'user.cars',
@@ -163,8 +222,7 @@ pos_models.load_models({
 //        console.log(usr_cars.length, 18777);
         self.usr_cars = usr_cars;
         self.db.add_cars(usr_cars);
-        load_all_cars();
-//        framework.unblockUI();
+//        load_all_cars();
 //        setTimeout(load_all_cars, 500);
     },
 });
