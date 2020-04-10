@@ -21,24 +21,17 @@ var RestaurantFloor = require('pos_restaurant.floors');
 var ScreenWidget = screens.ClientListScreenWidget;
 var PaymentScreenWidget = screens.PaymentScreenWidget;
 
-var Mutex = utils.Mutex;
-var PosDB = require('point_of_sale.DB');
-var devices = require('point_of_sale.devices');
-var OrderCollection = Backbone.Collection.extend({
-    model: pos_models.Order,
+//gets pos_instance to call load_server_data later, when limited data obtained once
+var pos_instance = undefined;
+chrome.Chrome.include({
+    init: function() {
+        var self = this;
+        this._super();
+        pos_instance = self.pos;
+    },
 });
-//function load_all_cars(){
-//    try{
-//    console.log(4356007);
-//        var pos_instance = new pos_models.PosModel();
-//        console.log(4356);
-//        console.log(pos_instance.models);
-//    }
-//    catch(er){
-//        console.log(er)
-//    }
-//}
-//load_server_data();
+
+var framework = require('web.framework')
 pos_models.PosModel = pos_models.PosModel.extend({
     set_table: function(table) {
         if (!table) { // no table ? go back to the floor plan, see ScreenSelector
@@ -75,165 +68,88 @@ pos_models.PosModel = pos_models.PosModel.extend({
                 }
             }
         },
-    initialize: function(session, attributes) {
-        Backbone.Model.prototype.initialize.call(this, attributes);
-        console.log(32000346);
-        var  self = this;
-        this.flush_mutex = new Mutex();                   // used to make sure the orders are sent to the server once at time
-        this.chrome = attributes.chrome;
-        this.gui    = attributes.gui;
-
-        this.proxy = new devices.ProxyDevice(this);              // used to communicate to the hardware devices via a local proxy
-        this.barcode_reader = new devices.BarcodeReader({'pos': this, proxy:this.proxy});
-
-        this.proxy_queue = new devices.JobQueue();           // used to prevent parallels communications to the proxy
-        this.db = new PosDB();                       // a local database used to search trough products and categories & store pending orders
-        this.debug = core.debug; //debug mode
-
-        // Business data; loaded from the server at launch
-        this.company_logo = null;
-        this.company_logo_base64 = '';
-        this.currency = null;
-        this.shop = null;
-        this.company = null;
-        this.user = null;
-        this.users = [];
-        this.partners = [];
-        this.cashier = null;
-        this.cashregisters = [];
-        this.taxes = [];
-        this.pos_session = null;
-        this.config = null;
-        this.units = [];
-        this.units_by_id = {};
-        this.pricelist = null;
-        this.order_sequence = 1;
-        window.posmodel = this;
-        this.set({
-            'synch':            { state:'connected', pending:0 },
-            'orders':           new OrderCollection(),
-            'selectedOrder':    null,
-            'selectedClient':   null,
-        });
-        this.get('orders').bind('remove', function(order,_unused_,options){
-            self.on_removed_order(order,options.index,options.reason);
-        });
-        function update_client() {
-            var order = self.get_order();
-            this.set('selectedClient', order ? order.get_client() : null );
-        }
-        this.get('orders').bind('add remove change', update_client, this);
-        this.bind('change:selectedOrder', update_client, this);
-        this.ready = this.load_server_data().then(function(){
-            return self.after_load_server_data();
-        });
-    },
-    load_server_data: function(){
+    load_server_data1: function(model_name){
         var self = this;
         var loaded = new $.Deferred();
         var progress = 0;
-        var progress_step = 1.0 / self.models.length;
+        var progress_step = 1.0;
         var tmp = {}; // this is used to share a temporary state between models loaders
 
-        function load_model(index){
-            if(index >= self.models.length){
-                loaded.resolve();
-            }else{
-                var model = self.models[index];
-                self.chrome.loading_message(_t('Loading')+' '+(model.label || model.model || ''), progress);
-                var cond = typeof model.condition === 'function'  ? model.condition(self,tmp) : true;
-                if (!cond) {
-                    load_model(index+1);
-                    return;
+        function load_model(model){
+            var fields =  typeof model.fields === 'function'  ? model.fields(self,tmp)  : model.fields;
+            var domain =  typeof model.domain === 'function'  ? model.domain(self,tmp)  : model.domain;
+            var context = typeof model.context === 'function' ? model.context(self,tmp) : model.context;
+            var ids     = typeof model.ids === 'function'     ? model.ids(self,tmp) : model.ids;
+            var order   = typeof model.order === 'function'   ? model.order(self,tmp):    model.order;
+            progress += progress_step;
+            var records;
+            records = new Model(model.model)
+                .query(fields)
+                .filter(domain)
+                .order_by(order)
+                .context(context)
+                .all();
+            setTimeout(function(){
+                console.log(545454);
+                framework.unblockUI();
+            }, 5000);
+            records.then(function(result){
+                try{
+                    $.when(model.loaded(self,result,tmp))
+                        .then(function(){ },
+                              function(err){ loaded.reject(err); });
+                }catch(err){
+                    console.error(err.message, err.stack);
+                    loaded.reject(err);
                 }
-
-                var fields =  typeof model.fields === 'function'  ? model.fields(self,tmp)  : model.fields;
-                var domain =  typeof model.domain === 'function'  ? model.domain(self,tmp)  : model.domain;
-                var context = typeof model.context === 'function' ? model.context(self,tmp) : model.context;
-                var ids     = typeof model.ids === 'function'     ? model.ids(self,tmp) : model.ids;
-                var order   = typeof model.order === 'function'   ? model.order(self,tmp):    model.order;
-                progress += progress_step;
-
-                var records;
-                if( model.model ){
-                    if (model.ids) {
-                        records = new Model(model.model).call('read',[ids,fields],context);
-                    } else {
-                        records = new Model(model.model)
-                            .query(fields)
-                            .filter(domain)
-                            .order_by(order)
-                            .context(context)
-                            .all();
-                    }
-                    records.then(function(result){
-                            try{    // catching exceptions in model.loaded(...)
-                                $.when(model.loaded(self,result,tmp))
-                                    .then(function(){ load_model(index + 1); },
-                                          function(err){ loaded.reject(err); });
-                            }catch(err){
-                                console.error(err.message, err.stack);
-                                loaded.reject(err);
-                            }
-                        },function(err){
-                            loaded.reject(err);
-                        });
-                }else if( model.loaded ){
-                    try{    // catching exceptions in model.loaded(...)
-                        $.when(model.loaded(self,tmp))
-                            .then(  function(){ load_model(index +1); },
-                                    function(err){ loaded.reject(err); });
-                    }catch(err){
-                        loaded.reject(err);
-                    }
-                }else{
-                    load_model(index + 1);
-                }
-            }
+            },function(err){
+                loaded.reject(err);
+            });
         }
 
         try{
-            load_model(0);
+            for (var model_obj of pos_instance.models)
+            {
+                if (model_obj.model == model_name)
+                {
+                    model_obj.domain = function(self){ return [['car_status','=','active']]; },
+                    console.log(model_obj.model, 656677, new Date());
+                    load_model(model_obj);
+                    break;
+                }
+            }
+            load_model(model);
         }catch(err){
             loaded.reject(err);
         }
-
         return loaded;
     },
 });
-
-
-//    pos_models.load_models({
-//        model:  'user.cars',
-//        fields: ['name','id','car_brand','car_model','vehicle_no','car_status','partner_id','car_readaing_per_day','oil_change_after_readaing'],
-//        domain: function(self){ return [['car_status','=','active']]; },
-//        loaded: function(self,usr_cars){
-//            console.log(usr_cars.length, 17744);
-//            self.usr_cars = usr_cars;
-//            self.db.add_cars(usr_cars);
-//        },
-//    });
 
 pos_models.load_models({
     model:  'user.cars',
     fields: ['name','id','car_brand','car_model','vehicle_no','car_status','partner_id','car_readaing_per_day','oil_change_after_readaing'],
     domain: function(self){ return [['car_status','=','active'], ['limit', '=', 30]]; },
     loaded: function(self,usr_cars){
-//        console.log(usr_cars.length, 18777);
         self.usr_cars = usr_cars;
         self.db.add_cars(usr_cars);
-//        load_all_cars();
-//        setTimeout(load_all_cars, 500);
+        console.log(self.all_cars_loaded, usr_cars.length, new Date(), 68889);
+        if(!self.all_cars_loaded)
+        {
+            self.all_cars_loaded = 1;
+            pos_instance.load_server_data1('user.cars');
+        }
     },
 });
+
 
 pos_models.load_models({
     model:  'user.cars.readings',
     fields: ['per_day_reading','current_readaing','next_oil_change_km','next_oil_change_date','car_id','id','create_date','pos_order_id'],
     loaded: function(self,cars_readings){
         self.cars_readings = cars_readings;
-        },
-    });
+    },
+});
 
 pos_models.load_models({
     model:  'hr.employee',
