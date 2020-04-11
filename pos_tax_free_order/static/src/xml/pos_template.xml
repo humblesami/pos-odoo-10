@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<templates id="template" xml:space="preserve">
+	<t t-name="ActionTaxFreeApplyTaxWidget">
+        <div class="actionpad-tax-widget" >
+            <button class='button order-tax-free' >
+                <i class="fa fa-pencil-square-o"></i> 
+            	Tax Free
+            </button>
+            <button class='button order-apply-tax'>
+                <i class="fa fa-pencil-square-o"></i>
+                Apply Tax
+            </button>
+        </div>
+    </t>
+    <t t-extend='ProductScreenWidget'>
+        <t t-jquery='.placeholder-ActionpadWidget' t-operation='before'>
+        	<div class="placeholder-ActionTaxFreeApplyTaxWidget"></div>
+        </t>
+    </t>
+    <t t-name="POSTaxFreePassword">
+        <div class="modal-dialog">
+            <div class="popup">
+                <div class="title">Enter PIN</div>
+                <div class="body">
+                    <div class="tax-free-input">
+                        Provide Pin: <input type="password" name="text-free-input-name" class="text-free-input-class customer-oil-change" />
+                    </div>
+                    <div class="tax-free-input-error" style="color:red;display:none">Password not Matched. Please contact Administrator.</div>
+                </div>
+                <div class="footer">
+                    <div class="button done-select">Done</div>
+                    <div class="button cancel">Cancel</div>
+                </div>
+            </div>
+        </div>
+    </t>
+    <t t-name="SelectApplyTaxWidget">
+        <div class="modal-dialog">
+            <div class="popup car-select-employees car-list-creation">
+                <div class="title">Select Tax Class</div>
+                <div class="body">
+                    <div class="touch-scrollable scrollable-y" style="height: 480px">
+                        <table class="client-cars-list">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Tax Class Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="0" />
+                                <tr t-foreach="widget.pos.taxes" t-as="emp">
+                                    <td>
+                                        <t t-if="widget.apply_tax_id">
+                                            <t t-if="widget.apply_tax_id==emp.id">
+                                            <input type="radio" name="orderline-tax-selected" checked="checked" class="tax-selected" t-att-value="emp.id" />
+                                            </t>
+                                            <t t-else="">
+                                            <input type="radio" name="orderline-tax-selected" class="tax-selected" t-att-value="emp.id" />
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                        <input type="radio" name="orderline-tax-selected" class="tax-selected" t-att-value="emp.id" />
+                                        </t>
+                                    </td>
+                                    <td><span t-esc="emp.name" /></td>
+                                    <td>Will be applied in <b t-esc="emp.amount_type" /></td>
+                                    <t t-set="counter" t-value="counter+1" />
+                                </tr>
+                                <t t-if="counter==0">
+                                <tr><td colspan="5" class="text-center"><strong>No Tax Class Created Yet</strong></td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="footer">
+                    <div class="button done-select">
+                        Done
+                    </div>
+                    <div class="button cancel">
+                        Cancel
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

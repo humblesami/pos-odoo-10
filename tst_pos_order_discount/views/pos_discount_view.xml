@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <record model="ir.ui.view" id="wk_view_pos_config_form">
+        <field name="name">pos.config.form.view</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_config_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='receipt']" position="after">
+                <group string="Order Discount" col="4">
+                    <field name='wk_discounts' widget="many2many_tags" />
+                    <field name="wk_discount_product_id" />
+                </group>
+                <group string="Order Discount Password" col="4">
+                    <field name="ask_password_order_discount" />
+                    <field name="password_order_discount" attrs="{'invisible':[('ask_password_order_discount','=',False)],'required':[('ask_password_order_discount','=',True)]}" />
+                </group>
+                <group string="Discount Password" col="4">
+                    <field name="ask_password_discount" />
+                    <field name="password_discount" attrs="{'invisible':[('ask_password_discount','=',False)],'required':[('ask_password_discount','=',True)]}" />
+                </group>
+                <group string="Fix Discount Password" col="4">
+                    <field name="ask_fix_password_discount" />
+                    <field name="fix_password_discount" attrs="{'invisible':[('ask_fix_password_discount','=',False)],'required':[('ask_fix_password_discount','=',True)]}" />
+                </group>
+                <group string="Price Change Password" col="4">
+                    <field name="ask_price_password_discount" />
+                    <field name="price_password_discount" attrs="{'invisible':[('ask_price_password_discount','=',False)],'required':[('ask_price_password_discount','=',True)]}" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="wk_dicount_form" model="ir.ui.view">
+        <field name="name">pos.order.discount.form</field>
+        <field name="model">pos.order.discount</field>
+        <field name="arch" type="xml">
+            <form string="Discount form">
+                <sheet>
+                    <field name="file" widget="image" class="oe_avatar oe_left" />
+                    <div class="oe_title">
+                        <div class="oe_edit_only">
+                            <label for="name" string="Discount name" />
+                        </div>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <label for="discount_method" />
+                            <div>
+                                <field name="discount_method" class="oe_inline" />
+                                <field name="discount_type" class="oe_inline" />
+                            </div>
+                        </group>
+                        <group>
+                            <field name="discount_on" />
+                        </group>
+                    </group>
+                    <label for="short_description" />
+                    <field name="short_description" />
+                    <label for="description" />
+                    <field name="description" placeholder="For your Eye Only..." />
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wk_dicount_tree" model="ir.ui.view">
+        <field name="name">pos.order.discount.tree</field>
+        <field name="model">pos.order.discount</field>
+        <field name="arch" type="xml">
+            <tree string="Discounts">
+                <field name="name" />
+                <field name="discount_method_function" />
+                <field name="discount_on" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="wk_discount_id">
+        <field name="name">POS Order discount</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.order.discount</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wk_dicount_tree" />
+    </record>
+
+    <menuitem name="POS Discounts" id="wk_discount_id1" action="wk_discount_id" parent="point_of_sale.menu_point_config_product" />
+</odoo>

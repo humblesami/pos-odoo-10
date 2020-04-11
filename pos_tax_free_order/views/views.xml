@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="inherit_pos_view_users_form" model="ir.ui.view">
+			<field name="model">res.users</field>
+			<field name="inherit_id" ref="point_of_sale.res_users_form_view"/>
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='pos_security_pin']" position="after">
+					<field name="is_allow_taxfree" />
+				</xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

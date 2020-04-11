@@ -6,8 +6,8 @@ from datetime import timedelta
 
 class ResPartnerTSTInherit(models.Model):
     _inherit = 'res.partner'
-    cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
 
+    cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
 
 class TSTInheritPosOrderLine(models.Model):
     _inherit = "pos.order.line"
@@ -16,7 +16,6 @@ class TSTInheritPosOrderLine(models.Model):
         if self.price_unit and self.discount:
             getit = (self.price_unit / 100) * self.discount
             return getit
-
 
 class TSTInheritPosOrder(models.Model):
     _inherit = "pos.order"
@@ -45,8 +44,7 @@ class TSTInheritPosOrder(models.Model):
         getCreate = super(TSTInheritPosOrder, self).create(values)
         if values['reading_id']:
             self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
-        # sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
-        sms_template = None
+        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
         if sms_template:
             body = sms_template.sms_html
 
