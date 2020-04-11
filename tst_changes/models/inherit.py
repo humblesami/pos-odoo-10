@@ -14,7 +14,20 @@ class ResPartnerTSTInherit(models.Model):
         for x in domain:
             if x[0] == 'limit':
                 cr = self._cr
-                query = "select distinct partner_id from user_cars order by id limit "+str(x[1])
+                query = "select distinct partner_id from "
+                if not x[2]:
+                    values = []
+                    filters = ''
+                    for d in domain:
+                        filters += "{}='{}'"
+                        values.append(d[0])
+                        values.append(d[2])
+                    filters = filters.format(filters, values)
+                    if filters:
+                        filters = ' where '+filters
+                    query += " (select id, partner_id from user_cars "+filters+") uc"
+                else:
+                    query += " (select id, partner_id from user_cars order by id limit "+str(x[2])+") uc"
                 cr.execute(query)
                 res = cr.dictfetchall()
                 ids = []
@@ -23,7 +36,7 @@ class ResPartnerTSTInherit(models.Model):
                 res = super(ResPartnerTSTInherit, self).search([('id', 'in', ids)])
                 res = res.read(fields)
                 return res
-        res = super(ResPartnerTSTInherit, self).search_read(self, domain, fields, offset, limit, order)
+        res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset, limit, order)
         return res
 
 
