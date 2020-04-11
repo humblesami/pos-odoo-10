@@ -2,12 +2,30 @@ from odoo import models, fields, exceptions, api, tools, _
 from odoo.exceptions import UserError
 from functools import partial
 import pytz
-from datetime import timedelta
+from datetime import timedelta, datetime
+
 
 class ResPartnerTSTInherit(models.Model):
     _inherit = 'res.partner'
 
     cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
+
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        for x in domain:
+            if x[0] == 'limit':
+                cr = self._cr
+                query = "select distinct partner_id from user_cars order by id limit "+str(x[1])
+                cr.execute(query)
+                res = cr.dictfetchall()
+                ids = []
+                for x in res:
+                    ids.append(x['partner_id'])
+                res = super(ResPartnerTSTInherit, self).search([('id', 'in', ids)])
+                res = res.read(fields)
+                return res
+        res = super(ResPartnerTSTInherit, self).search_read(self, domain, fields, offset, limit, order)
+        return res
+
 
 class TSTInheritPosOrderLine(models.Model):
     _inherit = "pos.order.line"

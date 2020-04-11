@@ -16,6 +16,19 @@ class TSTMyCars(models.Model):
         pos = self.search(domain + args, limit=limit)
         return pos.name_get()
 
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        print datetime.now()
+        print limit
+        if len(domain) > 1:
+            if domain[1][0] == 'limit':
+                limit = domain[1][2]
+                domain = domain[:-1]
+                order = 'id'
+        # limit = 20
+        res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
+        print(datetime.now())
+        return res
+
     @api.multi
     def name_get(self):
         result = []
