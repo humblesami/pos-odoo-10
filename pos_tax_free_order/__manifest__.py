@@ -2,7 +2,7 @@
 {
     "name": "Add/Remove tax dynamically in POS order Screen",
     "version": "10.0.1.0",
-    "author": "Nilesh Sheliya",
+    "author": "Nilesh Sheliya sami",
     "website": "",
     "category": "Point of Sale",
     "description": """

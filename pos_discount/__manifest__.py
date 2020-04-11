@@ -8,7 +8,8 @@
     'category': 'Point of Sale',
     'sequence': 6,
     'summary': 'Simple Discounts in the Point of Sale ',
-    'description': """
+    'description': """,
+    'author': 'sami',
 
 =======================
 

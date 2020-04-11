@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+		 <record model="ir.ui.view" id="rstc_view_pos_config_form">
+            <field name="name">pos.config.form.view.inherit</field>
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_config_form"/>
+            <field name="arch" type="xml">
+                <group name="features" position="after">
+                    <separator string="Rounding" />
+                    <group col="4">
+                        <field name="enable_rounding"/>
+                        <field name="rounding_options" attrs="{'invisible' : [('enable_rounding', '=', False)],'required':[('enable_rounding','=',True)]}"/>
+                        <field name="rounding_journal_id" attrs="{'invisible' : [('enable_rounding', '=', False)],'required':[('enable_rounding','=',True)]}"
+							context="{'journal_ids': journal_ids, 'pos_journal': True}" options="{'no_create':True}"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+
+		<record id="order_inherited_form_view" model="ir.ui.view">
+            <field name="name">pos.order.inherited.view</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="arch" type="xml">
+                <field name="amount_tax" position="after">
+                    <field name="rounding" />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -6,7 +6,7 @@
     'name': 'TST Modifications',
     'summary': '',
     'description': 'Modifications required for Total Soft',
-    'author': 'Cybill Technologies',
+    'author': 'Cybill Technologies sami',
     'category': 'Discuss',
     'license': 'AGPL-3',
     'website': 'http://www.cybilltechsolutions.com/',

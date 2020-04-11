@@ -19,7 +19,7 @@
   "category"             :  "Point of Sale",
   "version"              :  "1.2",
   "sequence"             :  1,
-  "author"               :  "Ahmed Khakwani",
+  "author"               :  "Ahmed Khakwani sami",
   "license"              :  "Other proprietary",
   "website"              :  "",
   "description"          :  """Odoo POS Order Discount

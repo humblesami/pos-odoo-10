@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-extend="PaymentScreen-Paymentlines">
+        <t t-jquery=".total" t-operation="replace">
+            <div class='total'>
+                <t t-esc="widget.format_currency(order.getNetTotalTaxIncluded())"/>
+            </div>
+        </t>
+        <t t-jquery='[t-if="!paymentlines.length"] div.total' t-operation="before">
+            <t t-if="widget.pos.config.enable_rounding">
+                <div>
+                    <table style="position: absolute;width: 112px;">
+                        <tr>
+                            <td style="font-size: large;">
+                                Rounding:
+                            </td>
+                            <td style="font-size: x-large;">
+                                <i t-att-class="order.get_rounding_status() ? 'fa fa-toggle-on' : 'fa fa-toggle-off'" aria-hidden="true"  id="pos-rounding" style="color: #43996E"></i>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <t t-extend="PosTicket">
+        <t t-jquery="table.receipt-total tr:first" t-operation="replace">
+           <t t-if="order.get_due() == 0" >
+               <tr>
+                   <td>Subtotal:</td>
+                   <td class="pos-right-align">
+                       <t t-esc="widget.format_currency(order.get_total_without_tax())"/>
+                   </td>
+               </tr>
+           </t>
+           <t t-if="widget.pos.config.enable_rounding">
+               <t t-if="order and order.get_rounding()">
+               <tr style="font-size: 20px;">
+                   <td>Rounding:</td><td class="pos-right-align">
+                       <t t-esc="widget.format_currency(order.get_rounding())"/>
+                   </td>
+               </tr>
+           </t>
+           <t t-if="order and order.getNetTotalTaxIncluded()">
+               <tr style="font-size: 20px;"><td>Net Total:</td>
+                   <td class="pos-right-align">
+                       <t t-esc="widget.format_currency(order.getNetTotalTaxIncluded())"/>
+                   </td>
+               </tr>
+           </t>
+           </t>
+       </t>
+    </t>
+
+</templates>

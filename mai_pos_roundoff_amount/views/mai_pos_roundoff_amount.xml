@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vim:fdn=3:-->
+<openerp>
+    <data>
+
+        <template id="enlarge_image index" name="aces_pos_enlarge_image assets" inherit_id="point_of_sale.index">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/mai_pos_roundoff_amount/static/src/js/pos.js"></script>
+                <link rel="stylesheet" href="/mai_pos_roundoff_amount/static/src/css/pos.css"/>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>
