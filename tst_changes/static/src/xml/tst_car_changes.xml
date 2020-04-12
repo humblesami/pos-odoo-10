@@ -313,7 +313,9 @@
                 <td><t t-esc="car.vehicle_no" /></td>
                 <td>
                     <t t-if="car.id!=widget.current_car_id and widget.check_car_available(car.id)==0">
-                    <span class="button highlight set-default-car" t-att-car-index-id="indexCounter" t-att-car-id="car.id" t-att-car-vehicle-no="car.vehicle_no" t-att-car-partner-id="car.partner_id[0]">Set Default Car</span>
+                    <span class="button highlight set-default-car" t-att-car-index-id="indexCounter"
+                          t-att-car-id="car.id" t-att-car-vehicle-no="car.vehicle_no"
+                          t-att-car-partner-id="car.partner_id[0]">Set Default Car</span>
                     </t>
                 </td>
                 <t t-set="indexCounter" t-value="indexCounter+1"/>

@@ -98,6 +98,11 @@ odoo.define('pos_product_creation', function (require) {
             });
             if(required_model.length){
                 required_model = required_model[0];
+                required_model.loaded = function(self,partners){
+                    self.partners = partners;
+                    console.log(partners[0]);
+                    self.db.add_partners(partners);
+                },
                 update_domain(required_model, 'add', ['limit','=',30])
             }
 
@@ -715,6 +720,7 @@ odoo.define('pos_product_creation', function (require) {
             }
             return updated_count;
         },
+
         _partner_search_string: function (partner) {
             var str = partner.name;
             if (partner.barcode) {
@@ -1352,6 +1358,10 @@ odoo.define('pos_product_creation', function (require) {
                 }
                 $(".clear-search-result").show();
                 var search_str = $(e.currentTarget).val().toLowerCase();
+                var results = Array();
+                var newThisIs = this;
+                self.isSearch = true;
+
                 if(!pos_instance.all_cars_loaded)
                 {
                     let ajax_options = {
@@ -1359,68 +1369,80 @@ odoo.define('pos_product_creation', function (require) {
                         dataType: 'json',
                         data: {search_str: search_str},
                         success: function(data){
-                            console.log(data.length + ' results found');
                             if(!pos_instance.all_cars_loaded)
                             {
-                                pos_instance.usr_cars = data;
-                                pos_instance.db.add_cars(data);
+                                $('table.client-cars-list tbody').children().remove();
+                                pos_instance.partners = data.partners;
+                                pos_instance.db.add_partners(data.partners);
+
+                                results = data.cars;
+                                pos_instance.usr_cars = results;
+                                pos_instance.db.add_cars(results);
+                                console.log(data);
+
+                                self.searchResult = results;
+                                var car_list_widget = newThisIs.renderCarsTableList('server', results);
+                                if (car_list_widget != 'n') {
+                                    $('.client-cars-list tbody').html('');
+                                    car_list_widget.appendTo($('.client-cars-list tbody'));
+                                }
+                                else {
+                                    $('.client-cars-list tbody').html('<tr><td colspan="6" style="text-align:center">No Results Found</td></tr>')
+                                }
                             }
                         },
                         error: function(er){
                             console.log(er)
                         }
                     }
-                    console.log(ajax_options);
                     $.ajax(ajax_options)
-                    return;
                 }
-                var newThisIs = this;
-                var results = Array();
-                for (var i in self.pos.usr_cars) {
-                    var partner_det = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]);
-                    var partner_phone = '';
-                    var car_brand = '';
-                    var car_mod = '';
-                    if (partner_det) {
-                        if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone) {
-                            partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone.toLowerCase();
+                else{
+                    for (var i in self.pos.usr_cars) {
+                        var partner_det = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]);
+                        var partner_phone = '';
+                        var car_brand = '';
+                        var car_mod = '';
+                        if (partner_det) {
+                            if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone) {
+                                partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone.toLowerCase();
+                            }
+                            else if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile) {
+                                partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile.toLowerCase();
+                            }
                         }
-                        else if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile) {
-                            partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile.toLowerCase();
+                        if (self.pos.usr_cars[i].car_brand[1]) {
+                            car_brand = self.pos.usr_cars[i].car_brand[1].toLowerCase();
                         }
-                    }
-                    if (self.pos.usr_cars[i].car_brand[1]) {
-                        car_brand = self.pos.usr_cars[i].car_brand[1].toLowerCase();
-                    }
-                    if (self.pos.usr_cars[i].car_model) {
-                        car_mod = self.pos.usr_cars[i].car_model.toLowerCase();
-                    }
+                        if (self.pos.usr_cars[i].car_model) {
+                            car_mod = self.pos.usr_cars[i].car_model.toLowerCase();
+                        }
 
-                    if (car_brand.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                        if (car_brand.indexOf(search_str) !== -1) {
+                            results.push(self.pos.usr_cars[i]);
+                        }
+                        else if (self.pos.usr_cars[i].partner_id[1].toLowerCase().indexOf(search_str) !== -1) {
+                            results.push(self.pos.usr_cars[i]);
+                        }
+                        else if (car_mod.indexOf(search_str) !== -1) {
+                            results.push(self.pos.usr_cars[i]);
+                        }
+                        else if (self.pos.usr_cars[i].vehicle_no.toLowerCase().indexOf(search_str) !== -1) {
+                            results.push(self.pos.usr_cars[i]);
+                        }
+                        else if (partner_phone.indexOf(search_str) !== -1) {
+                            results.push(self.pos.usr_cars[i]);
+                        }
                     }
-                    else if (self.pos.usr_cars[i].partner_id[1].toLowerCase().indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                    self.searchResult = results;
+                    var car_list_widget = newThisIs.renderCarsTableList('server', results);
+                    if (car_list_widget != 'n') {
+                        $('.client-cars-list tbody').html('');
+                        car_list_widget.appendTo($('.client-cars-list tbody'));
                     }
-                    else if (car_mod.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                    else {
+                        $('.client-cars-list tbody').html('<tr><td colspan="6" style="text-align:center">No Results Found</td></tr>')
                     }
-                    else if (self.pos.usr_cars[i].vehicle_no.toLowerCase().indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
-                    }
-                    else if (partner_phone.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
-                    }
-                }
-                self.isSearch = true;
-                self.searchResult = results;
-                var car_list_widget = newThisIs.renderCarsTableList('server', results);
-                if (car_list_widget != 'n') {
-                    $('.client-cars-list tbody').html('');
-                    car_list_widget.appendTo($('.client-cars-list tbody'));
-                }
-                else {
-                    $('.client-cars-list tbody').html('<tr><td colspan="6" style="text-align:center">No Results Found</td></tr>')
                 }
             }
         },
