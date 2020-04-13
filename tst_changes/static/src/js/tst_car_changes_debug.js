@@ -21,39 +21,29 @@ odoo.define('pos_product_creation', function (require) {
     var ScreenWidget = screens.ClientListScreenWidget;
     var PaymentScreenWidget = screens.PaymentScreenWidget;
 
-    function update_domain(required_model, op, domain){
-        if(!required_model.domain)
-        {
-            required_model.domain = [];
-        }
-        if(!required_model.original_domain)
-        {
-            required_model.original_domain = required_model.domain;
-        }
-        if(op == 'add')
-        {
-            var ar1 = [];
-            for (let item of required_model.original_domain)
-            {
-                ar1.push(item);
-            }
-            ar1.push(domain)
-            required_model.domain = ar1;
-        }
-        else if(op == 'restore')
-        {
-            required_model.domain = required_model.original_domain;
-        }
-        else if(op == 'replace')
-        {
-            required_model.domain = domain
-        }
-        //console.log(required_model);
-    }
-
-    //gets pos_instance to call load_server_data later, when limited data obtained once
     var pos_instance = undefined;
     var framework = require('web.framework');
+
+    function get_limited_records_model(model_name, limited_domain)
+    {
+        let model_index = -1;
+        let required_model = undefined;
+        required_model = pos_instance.models.find(function(item, i){
+            if(item.model === model_name){
+                model_index = i;
+                return i;
+            }
+        });
+        if(model_index != -1)
+        {
+            required_model = pos_instance.models[model_index];
+            required_model.domain = limited_domain;
+        }
+        required_model.limited = 1;
+        required_model.model_index = model_index;
+        return required_model;
+    }
+
     pos_models.PosModel = pos_models.PosModel.extend({
         set_table: function (table) {
             if (!table) { // no table ? go back to the floor plan, see ScreenSelector
@@ -92,41 +82,43 @@ odoo.define('pos_product_creation', function (require) {
         },
         load_server_data: function(){
             var self = pos_instance = this;
-            let model_name = 'res.partner';
-            let required_model = pos_instance.models.filter((item)=>{
-                return item.model == model_name;
-            });
-            if(required_model.length){
-                required_model = required_model[0];
-                required_model.loaded = function(self,partners){
-                    self.partners = partners;
-                    self.db.add_partners(partners);
-                },
-                update_domain(required_model, 'add', ['limit','=',30])
-            }
+            let model_index =- 1;
+            let domain = [];
+            let model_name = '';
+            model_name = 'res.partner';
+            domain = [['customer','=', true], ['limit','=',30]];
+            var required_model1 = get_limited_records_model(model_name, domain);
+            required_model1.original_domain = [['customer','=', true]];
+
 
             model_name = 'user.cars';
-            required_model = pos_instance.models.filter((item)=>{
-                return item.model == model_name;
-            });
-            if(required_model.length){
-                required_model = required_model[0];
-                update_domain(required_model, 'add', ['limit','=',30])
+            domain = [['car_status','=', 'active'], ['limit','=',30]];
+            let required_model2 = get_limited_records_model(model_name, domain);
+            required_model2.original_domain = [['car_status','=', 'active']];
+
+            function load_pending(){
+                required_model1.domain = required_model1.original_domain;
+                load_model(required_model1.model_index, 1);
+                required_model2.load_pending = 1;
+                required_model2.domain = required_model2.original_domain;
+                load_model(required_model2.model_index, 1);
             }
+
             var loaded = new $.Deferred();
             var progress = 0;
             var progress_step = 1.0 / self.models.length;
             var tmp = {}; // this is used to share a temporary state between models loaders
 
-            function load_model(index){
+            function load_model(index=0, single_model=undefined){
                 if(index >= self.models.length){
                     loaded.resolve();
+                    load_pending();
                 }else{
                     var model = self.models[index];
                     self.chrome.loading_message(_t('Loading')+' '+(model.label || model.model || ''), progress);
 
                     var cond = typeof model.condition === 'function'  ? model.condition(self,tmp) : true;
-                    if (!cond) {
+                    if (!cond && ! single_model) {
                         load_model(index+1);
                         return;
                     }
@@ -150,11 +142,26 @@ odoo.define('pos_product_creation', function (require) {
                                 .context(context)
                                 .all();
                         }
+                        if(single_model)
+                        {
+                            setTimeout(function(){
+                                framework.unblockUI();
+                            }, 5000);
+                        }
                         records.then(function(result){
+                                if(model.original_domain)
+                                {
+                                    console.log(result.length, model.model);
+                                }
                                 try{    // catching exceptions in model.loaded(...)
                                     $.when(model.loaded(self,result,tmp))
-                                        .then(function(){ load_model(index + 1); },
-                                              function(err){ loaded.reject(err); });
+                                        .then(function(){
+                                            if(!single_model)
+                                            {
+                                                load_model(index + 1);
+                                            }
+                                        },
+                                        function(err){ loaded.reject(err); });
                                 }catch(err){
                                     console.error(err.message, err.stack);
                                     loaded.reject(err);
@@ -165,13 +172,19 @@ odoo.define('pos_product_creation', function (require) {
                     }else if( model.loaded ){
                         try{    // catching exceptions in model.loaded(...)
                             $.when(model.loaded(self,tmp))
-                                .then(  function(){ load_model(index +1); },
+                                .then(  function(){
+                                    if(!single_model){
+                                        load_model(index +1);
+                                    }
+                                 },
                                         function(err){ loaded.reject(err); });
                         }catch(err){
                             loaded.reject(err);
                         }
                     }else{
-                        load_model(index + 1);
+                        if(!single_model){
+                            load_model(index +1);
+                        }
                     }
                 }
             }
@@ -182,66 +195,6 @@ odoo.define('pos_product_creation', function (require) {
                 loaded.reject(err);
             }
 
-            return loaded;
-        },
-        load_server_data1: function (model_name, domain) {
-            var self = this;
-            var loaded = new $.Deferred();
-            var progress = 0;
-            var progress_step = 1.0;
-            var tmp = {}; // this is used to share a temporary state between models loaders
-
-            function load_model(model) {
-                var fields = typeof model.fields === 'function' ? model.fields(self, tmp) : model.fields;
-                var domain = typeof model.domain === 'function' ? model.domain(self, tmp) : model.domain;
-                var context = typeof model.context === 'function' ? model.context(self, tmp) : model.context;
-                var ids = typeof model.ids === 'function' ? model.ids(self, tmp) : model.ids;
-                var order = typeof model.order === 'function' ? model.order(self, tmp) : model.order;
-                progress += progress_step;
-                var records;
-                records = new Model(model.model)
-                    .query(fields)
-                    .filter(domain)
-                    .order_by(order)
-                    .context(context)
-                    .all();
-                setTimeout(function () {
-                    framework.unblockUI();
-                }, 5000);
-                records.then(function (result) {
-                    try {
-                        $.when(model.loaded(self, result, tmp))
-                            .then(function () { },
-                                function (err) { loaded.reject(err); });
-                    } catch (err) {
-                        console.error(err.message, err.stack);
-                        loaded.reject(err);
-                    }
-                }, function (err) {
-                    loaded.reject(err);
-                });
-            }
-
-            try {
-                let required_model = pos_instance.models.filter((item) => {
-                    return item.model == model_name;
-                });
-                if(required_model.length)
-                {
-                    required_model = required_model[0];
-                    if(domain)
-                    {
-                        update_domain(required_model, 'replace', domain);
-                    }
-                    else{
-                        update_domain(required_model, 'restore');
-                    }
-                    console.log('Loading full data for ' + required_model.model);
-                    load_model(required_model);
-                }
-            } catch (err) {
-                loaded.reject(err);
-            }
             return loaded;
         },
     });
@@ -271,21 +224,18 @@ odoo.define('pos_product_creation', function (require) {
 
     pos_models.load_models({
         model: 'user.cars',
+        domain:[['car_status','=','active']],
         fields: ['name', 'id', 'car_brand', 'car_model', 'vehicle_no', 'car_status', 'partner_id', 'car_readaing_per_day', 'oil_change_after_readaing'],
-        domain: [['car_status', '=', 'active']],
-        loaded: function (self, usr_cars) {
-            self.usr_cars = usr_cars;
-            self.db.add_cars(usr_cars);
-            var loaded_type = 'Load type: initial load';
-            if (pos_instance.all_cars_loaded) {
-                loaded_type = 'Load type: full load';
+        loaded: function(self, records){
+            self.usr_cars = records;
+            self.db.add_cars(records);
+            if(this.load_pending)
+            {
+                this.load_pending = 0;
+                console.log('All loaded');
+                pos_instance.all_cars_loaded = 1;
             }
-            console.log(loaded_type, ', count : ' + usr_cars.length, ', time: ' + format_time());
-//            if (!pos_instance.all_cars_loaded) {
-//                pos_instance.all_cars_loaded = 1;
-//                pos_instance.load_server_data1('user.cars');
-//            }
-        },
+        }
     });
 
     pos_models.load_models({

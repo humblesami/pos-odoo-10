@@ -6,10 +6,6 @@ from odoo.http import request
 
 class TstController(http.Controller):
 
-    @http.route('/set/password', auth='public')
-    def index(self):
-        return 'Hello'
-
     @http.route('/search/cars', auth='user')
     def search_string(self, **kw):
         cr = request._cr
@@ -33,6 +29,7 @@ class TstController(http.Controller):
         for ob in cars:
             ob['car_brand'] = [0, ob['car_brand']]
             ob['partner_id'] = [ob['customer_id'], ob['customer_name']]
+
         query = """        
                     SELECT distinct res_partner.name as name,res_partner.id,res_partner.mobile,res_partner.barcode,
                     res_partner.street,res_partner.zip,res_partner.city,res_partner.country_id, res_partner.state_id,

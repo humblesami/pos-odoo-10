@@ -19,8 +19,9 @@ class ResPartnerTSTInherit(models.Model):
                 cr.execute(query)
                 res = cr.dictfetchall()
                 ids = []
-                for x in res:
-                    ids.append(x['partner_id'])
+                for rec in res:
+                    ids.append(rec['partner_id'])
+                print str(x[2])
                 res = super(ResPartnerTSTInherit, self).search([('id', 'in', ids)])
                 res = res.read(fields)
                 return res

@@ -21,6 +21,7 @@ class TSTMyCars(models.Model):
             if x[0] == 'limit':
                 limit = x[2]
                 domain = domain[:-1]
+                print str(x[2])
         order = 'id'
         res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
         return res
