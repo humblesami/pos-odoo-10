@@ -15,19 +15,7 @@ class ResPartnerTSTInherit(models.Model):
             if x[0] == 'limit':
                 cr = self._cr
                 query = "select distinct partner_id from "
-                if not x[2]:
-                    values = []
-                    filters = ''
-                    for d in domain:
-                        filters += "{}='{}'"
-                        values.append(d[0])
-                        values.append(d[2])
-                    filters = filters.format(filters, values)
-                    if filters:
-                        filters = ' where '+filters
-                    query += " (select id, partner_id from user_cars "+filters+") uc"
-                else:
-                    query += " (select id, partner_id from user_cars order by id limit "+str(x[2])+") uc"
+                query += " (select id, partner_id from user_cars order by id limit "+str(x[2])+") uc"
                 cr.execute(query)
                 res = cr.dictfetchall()
                 ids = []
@@ -75,7 +63,8 @@ class TSTInheritPosOrder(models.Model):
         getCreate = super(TSTInheritPosOrder, self).create(values)
         if values['reading_id']:
             self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
-        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
+        sms_template = None
+        #sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
         if sms_template:
             body = sms_template.sms_html
 

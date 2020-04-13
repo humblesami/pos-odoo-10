@@ -100,7 +100,6 @@ odoo.define('pos_product_creation', function (require) {
                 required_model = required_model[0];
                 required_model.loaded = function(self,partners){
                     self.partners = partners;
-                    console.log(partners[0]);
                     self.db.add_partners(partners);
                 },
                 update_domain(required_model, 'add', ['limit','=',30])

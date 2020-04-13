@@ -20,26 +20,6 @@ class TSTMyCars(models.Model):
         for x in domain:
             if x[0] == 'limit':
                 limit = x[2]
-                if not limit:
-                    values = []
-                    filters = ''
-                    for d in domain:
-                        filters += "{}='{}'"
-                        values.append(d[0])
-                        values.append(d[2])
-                    filters = filters.format(filters, values)
-                    if filters:
-                        filters = ' where ' + filters
-                    query = "select distinct id from user_cars " + filters
-                    cr = self._cr
-                    cr.execute(query)
-                    res = cr.dictfetchall()
-                    ids = []
-                    for x in res:
-                        ids.append(x['id'])
-                    domain = ['id', 'in', ids]
-                    res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
-                    return res
                 domain = domain[:-1]
         order = 'id'
         res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
