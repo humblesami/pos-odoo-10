@@ -17,14 +17,21 @@ class TSTMyCars(models.Model):
         return pos.name_get()
 
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        for x in domain:
-            if x[0] == 'limit':
-                limit = x[2]
-                domain = domain[:-1]
-                print str(x[2])
-        order = 'id'
-        res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
-        return res
+        cr = self._cr
+        query = """
+        SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,
+        res_partner.id as customer_id, user_cars_brands.car_brand 
+        FROM public.user_cars 
+        inner join public.user_cars_brands on user_cars.car_brand = user_cars_brands.id
+        inner join public.res_partner on user_cars.partner_id = res_partner.id
+        """
+        cr.execute(query)
+        cars = cr.dictfetchall()
+        for ob in cars:
+            ob['car_brand'] = [0, ob['car_brand']]
+            ob['partner_id'] = [ob['customer_id'], ob['customer_name']]
+
+        return cars
 
     @api.multi
     def name_get(self):

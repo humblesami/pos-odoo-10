@@ -11,21 +11,35 @@ class ResPartnerTSTInherit(models.Model):
     cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
 
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        for x in domain:
-            if x[0] == 'limit':
-                cr = self._cr
-                query = "select distinct partner_id from "
-                query += " (select id, partner_id from user_cars order by id limit "+str(x[2])+") uc"
-                cr.execute(query)
-                res = cr.dictfetchall()
-                ids = []
-                for rec in res:
-                    ids.append(rec['partner_id'])
-                print str(x[2])
-                res = super(ResPartnerTSTInherit, self).search([('id', 'in', ids)])
-                res = res.read(fields)
-                return res
-        res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset, limit, order)
+        cr = self._cr
+        query = """
+                SELECT distinct res_partner.name as name,res_partner.id,res_partner.mobile,res_partner.barcode,
+                res_partner.street,res_partner.zip,res_partner.city,res_partner.country_id, res_partner.state_id,
+                res_partner.email, res_partner.vat, res_partner.write_date
+                from res_partner
+                where customer=True                    
+        """
+        cr.execute(query)
+        partners = cr.dictfetchall()
+        query = """
+                select id,name from res_country rc join (select distinct country_id from res_partner) pc on pc.country_id= rc.id
+                """
+        cr.execute(query)
+        res_countries = cr.dictfetchall()
+        default_country = [1, 'US']
+        if len(res_countries):
+            countries_dict = {}
+            for country in res_countries:
+                countries_dict[country['id']] = country
+            default_country = [res_countries[0]['id'], res_countries[0]['name']]
+
+        for customer in partners:
+            if customer.get('country_id'):
+                country = countries_dict[customer['country_id']]
+                customer['country_id'] = [country['id'], country['name']]
+            else:
+                customer['country_id'] = default_country
+        res = partners
         return res
 
 
