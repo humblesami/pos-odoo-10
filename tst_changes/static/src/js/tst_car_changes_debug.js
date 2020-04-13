@@ -89,12 +89,16 @@ odoo.define('pos_product_creation', function (require) {
             domain = [['customer','=', true], ['limit','=',30]];
             var required_model1 = get_limited_records_model(model_name, domain);
             required_model1.original_domain = [['customer','=', true]];
+            //uncomment following for testing
+            //required_model1.original_domain = [['customer','=', true], ['limit', '=', 200]];
 
 
             model_name = 'user.cars';
             domain = [['car_status','=', 'active'], ['limit','=',30]];
             let required_model2 = get_limited_records_model(model_name, domain);
             required_model2.original_domain = [['car_status','=', 'active']];
+            //uncomment following for testing
+            //required_model2.original_domain = [['car_status','=', 'active'], ['limit', '=', 200]];
 
             function load_pending(){
                 required_model1.domain = required_model1.original_domain;
