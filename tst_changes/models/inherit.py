@@ -45,6 +45,8 @@ class ResPartnerTSTInherit(models.Model):
 
 class TSTInheritPosOrderLine(models.Model):
     _inherit = "pos.order.line"
+    discount_fixed = fields.Float(default=0)
+    discount_total = fields.Float(default=0)
 
     def get_original_discount_price(self):
         if self.price_unit and self.discount:
@@ -53,6 +55,9 @@ class TSTInheritPosOrderLine(models.Model):
 
 class TSTInheritPosOrder(models.Model):
     _inherit = "pos.order"
+
+    discount_fixed = fields.Float(default=0)
+    discount_total = fields.Float(default=0)
 
     employees_ids = fields.One2many("tst.table.employees","pos_order_id", string="Working Employees")
     car_id = fields.Many2one("user.cars", string="Selected Car")
