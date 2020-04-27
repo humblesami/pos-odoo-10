@@ -3,6 +3,7 @@ from odoo.exceptions import UserError
 from datetime import datetime
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
+
 class TSTMyCars(models.Model):
     _name = 'user.cars'
     _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
@@ -145,6 +146,7 @@ class TSTUserCarsAddBrands(models.Model):
 
     car_brand = fields.Char("Brand")
 
+
 class TSTCarReadings(models.Model):
     _name = "user.cars.readings"
 
@@ -156,16 +158,19 @@ class TSTCarReadings(models.Model):
     car_id = fields.Many2one("user.cars", "Car ID")
     pos_order_id = fields.Many2one("pos.order", string="POS Order")
 
+
 class TSTTableEmployees(models.Model):
     _name = "tst.table.employees"
 
     emp_id = fields.Many2one("hr.employee", string="Employee Name")
     pos_order_id = fields.Many2one("pos.order", string="POS Order ID")
 
+
 class TSTHrEmployeeInherit(models.Model):
     _inherit = "hr.employee"
 
     is_dock_user = fields.Boolean("Is Dock Worker")
+
 
 class TSTCaMaintainenceHistoy(models.Model):
     _name = "tst.car.maintain.history"
@@ -177,6 +182,7 @@ class TSTCaMaintainenceHistoy(models.Model):
 
     car_id = fields.Many2one("user.cars", string="Select Car")
     show_price_flag = fields.Selection([('show_prices','Show Prices'),('hide_prices','Hide Prices')], string="Show Prices", default='show_prices')
+
 
 class ReportSaleDetails(models.AbstractModel):
     _name = 'report.tst_changes.tst_report_saledetails'

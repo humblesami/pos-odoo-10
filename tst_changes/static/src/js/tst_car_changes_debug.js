@@ -1140,6 +1140,16 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
         this.current_car_id = '';
         this.partners = [];
         this.customerSelected = '';
+
+        this.current_page = 0;
+        this.page_count = 0;
+
+        this.search_count = 0;
+        this.total_count = 0;
+
+        $('body').on('focus', '.input-search-car', function(ev){
+            ev.target.select();
+        });
         this.customerSelectedName = '';
         },
     start: function() {
@@ -1154,8 +1164,8 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
         'click .show-next-twenty': 'next_paging',
         'click .show-last-twenty': 'last_paging',
         'click .clear-search-result': 'clear_search_string',
-        'keyup .input-seaarch-car': 'search_partner_table'
-        },
+        'keyup .input-search-car': 'search_partner_table'
+    },
     show: function(options){
         options = options || {};
         this._super(options);
@@ -1168,10 +1178,17 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
         this.pagingLastShowCar = 0;
         this.pagingNextShowCar = this.pagingShowCarJumpCount;
         this.isSearch = false;
+
+        this.total_count = options.usr_cars.length;
+        this.search_count = this.total_count;
+        this.current_page = 1;
+        this.page_count = parseInt(this.total_count / 20);
+
         this.searchResult = 0;
         this.renderElement();
-        this.$('.input-seaarch-car').focus();
-        },
+        this.$('.input-search-car').focus();
+        this.$('.input-search-car')[0].select();
+    },
     close: function(){
         if (this.pos.barcode_reader){
             this.pos.barcode_reader.restore_callbacks();
@@ -1186,6 +1203,7 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
                 }
             $(".clear-search-result").show();
             var search_str = $(e.currentTarget).val().toLowerCase();
+            //console.log(search_str, 5454);
             var newThisIs = this;
             var results = Array();
             for (var i in self.pos.usr_cars){
@@ -1249,9 +1267,21 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
                     }
                 });
             */
-            }
-        },
+            self.search_count = results.length;
+            self.current_page = 1;
+            self.page_count = parseInt(results.length / 20) + 1;
+            $('.pages .current_page:first').html(self.current_page);
+            $('.pages .page_count:first').html(self.page_count);
+            $('.counts .search_count:first').html(self.search_count);
+        }
+    },
     last_paging: function(e){
+        let self = this;
+        if(self.current_page <= 1)
+        {
+            return;
+        }
+        self.current_page -= 1;
         if(this.pagingLastShowCar >= this.pagingShowCarJumpCount){
             this.pagingLastShowCar = this.pagingLastShowCar - this.pagingShowCarJumpCount;
             this.pagingNextShowCar = this.pagingNextShowCar - this.pagingShowCarJumpCount;
@@ -1259,43 +1289,51 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
             var car_list_widget;
             if(this.isSearch) {
                 car_list_widget = this.renderCarsTableList('server',this.searchResult);
-                }
+            }
             else {
                 car_list_widget = this.renderCarsTableList('','');
-                }
+            }
             if(car_list_widget != 'n') {
                 this.$('.client-cars-list tbody').html('');
                 car_list_widget.appendTo(this.$('.client-cars-list tbody'));
                 }
-            }
-        },
+        }
+        $('.pages .current_page:first').html(self.current_page);
+    },
     next_paging: function(e){
+        let self = this;
+        if(self.current_page >= self.page_count)
+        {
+            return;
+        }
+        self.current_page += 1;
         this.pagingLastShowCar = this.pagingLastShowCar + this.pagingShowCarJumpCount;
         this.pagingNextShowCar = this.pagingNextShowCar + this.pagingShowCarJumpCount;
 
         var car_list_widget;
         if(this.isSearch == true) {
             car_list_widget = this.renderCarsTableList('server',this.searchResult);
-            }
+        }
         else {
             car_list_widget = this.renderCarsTableList('','');
-            }
+        }
         if(car_list_widget != 'n') {
             this.$('.client-cars-list tbody').html('');
             car_list_widget.appendTo(this.$('.client-cars-list tbody'));
-            }
-        },
+        }
+        $('.pages .current_page:first').html(self.current_page);
+    },
     renderCarsTableList: function(s_type, arr) {
         var self = this;
         var slicedArray, methods;
         if(s_type == "server") {
-            slicedArray = arr.slice(this.pagingLastShowCar,this.pagingNextShowCar);
+            slicedArray = arr; //arr.slice(this.pagingLastShowCar,this.pagingNextShowCar); //it is bug
             methods = $(QWeb.render('TableCarsListWidget', { widget:this, slicedArr:slicedArray, s_type: 'server' }));
-            }
+        }
         else {
             slicedArray = self.pos.usr_cars.slice(this.pagingLastShowCar,this.pagingNextShowCar);
             methods = $(QWeb.render('TableCarsListWidget', { widget:this, slicedArr:slicedArray, s_type: 'local' }));
-            }
+        }
 
         methods.on('click','.set-default-car.button',function() {
             var car_id = $(this).attr("car-id");
@@ -1356,15 +1394,23 @@ var carCustomerSearchWidget = PosBaseWidget.extend({
         },
     clear_search_string: function() {
         var self = this;
-        this.isSearch = false;
+        self.isSearch = false;
+        self.search_count = self.total_count;
+        self.current_page = 1;
+        self.page_count = parseInt(self.search_count/20) + 1;
+
         $(".clear-search-result").hide();
-        $(".input-seaarch-car").val('');
-        var car_list_widget = this.renderCarsTableList('','');
+        $(".input-search-car").val('');
+        var car_list_widget = self.renderCarsTableList('','');
         if(car_list_widget != 'n') {
             this.$('.client-cars-list tbody').html('');
             car_list_widget.appendTo(this.$('.client-cars-list tbody'));
-            }
-        },
+        }
+
+        $('.pages .current_page:first').html(self.current_page);
+        $('.pages .page_count:first').html(self.page_count);
+        $('.counts .search_count:first').html(self.search_count);
+    },
     renderElement: function() {
         var self = this;
         this._super();

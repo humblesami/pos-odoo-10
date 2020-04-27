@@ -124,7 +124,7 @@
                             </tr>
                         </table>
                     </div>
-                    <div class="touch-scrollable scrollable-y" style="height: 230px">
+                    <div class="touch-scrollable scrollable-y" style="height: calc(100vh - 300px)">
                         <table class="client-cars-list">
                             <thead>
                                 <tr>
@@ -265,7 +265,7 @@
                     </div>
                     </t>
                     <t t-else="">
-                        <div class="touch-scrollable scrollable-y" style="height: 480px;text-align:center">Please Select a Table</div>
+                        <div class="touch-scrollable scrollable-y" style="height: calc(100vh - 300px);text-align:center">Please Select a Table</div>
                     </t>
                 </div>
                 <div class="footer">
@@ -343,6 +343,7 @@
     </t>
     <t t-name="SelectAndSearchCar">
         <div class="modal-dialog">
+            <link rel="stylesheet" href="/tst_changes/static/src/css/car_search.css" />
             <div class="popup car-select-default car-list-creation ">
                 <div class="title">Select and Search Cars</div>
                 <div class="body">
@@ -357,12 +358,12 @@
                             <small style="font-size: 12px;">Enter your query and press enter</small>
                             <a href="javascript:;" class="clear-search-result" style="display:none">Clear Search Result</a>
                         </div>
-                        <input type="text" placeholder="Search" class="input-seaarch-car" />
+                        <input type="text" placeholder="Search" class="input-search-car" />
                         <input type="hidden" class="input-set-car" />
                         <a href="javascript:;" last-show="0" class="show-last-twenty cars-paging">&lt; Show Last 20</a>
                         <a href="javascript:;" last-show="20" class="show-next-twenty cars-paging">Show Next 20 &gt;</a>
                     </div>
-                    <div class="touch-scrollable scrollable-y" style="height: 480px">
+                    <div class="touch-scrollable scrollable-y" style="height: calc(100vh - 300px)">
                         <table class="client-cars-list">
                             <thead>
                                 <tr>
@@ -379,6 +380,18 @@
                     </div>
                 </div>
                 <div class="footer">
+                    <div class="pages pt-17">
+                        <span class="static">Page:</span>
+                        <span class="current_page"><t t-esc="widget.current_page"/></span>
+                        <span class="static">out of</span>
+                        <span class="page_count"><t t-esc="widget.page_count"/></span>
+                    </div>
+                    <div class="counts pt-17">
+                        <span class="static">Search Results:</span>
+                        <span class="search_count"><t t-esc="widget.search_count"/></span>
+                        <span class="static">out of</span>
+                        <span class="total_count"><t t-esc="widget.total_count"/></span>
+                    </div>
                     <div class="button cancel">
                         Cancel
                     </div>
