@@ -10,3 +10,22 @@
     display:flex;
     justify-content: center;
 }
+.pos *::-webkit-scrollbar
+{
+    width:8px;
+}
+.pos *::-webkit-scrollbar-thumb{
+    background: rgb(168,168,168)
+}
+.screen .screen-content{
+    height: 98%;
+}
+
+.pos .debug-widget
+{
+    display:none;
+}
+.touch-scrollable.scrollable-y
+{
+    height: calc(100vh - 300px);
+}

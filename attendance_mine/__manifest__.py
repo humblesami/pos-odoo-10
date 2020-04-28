@@ -13,4 +13,7 @@
 
     # any module necessary for this one to work correctly
     'depends': ['hr_attendance'],
+    'data': [
+        'security/ir.model.access.csv'
+    ],
 }

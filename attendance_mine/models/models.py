@@ -14,15 +14,7 @@ class HrAttendance(models.Model):
             raise ValidationError('You must be an employee to mark attendance')
         my_id = me_emp[0].id
         if vals.get('employee_id') != my_id:
-            raise ValidationError('You can mark only your own attendance')
+            if not self.env.user.has_group('hr_attendance.group_hr_attendance_user'):
+                raise ValidationError('You can mark only your own attendance')
         res = super(HrAttendance, self).create(vals)
         return res
-
-#     name = fields.Char()
-#     value = fields.Integer()
-#     value2 = fields.Float(compute="_value_pc", store=True)
-#     description = fields.Text()
-#
-#     @api.depends('value')
-#     def _value_pc(self):
-#         self.value2 = float(self.value) / 100

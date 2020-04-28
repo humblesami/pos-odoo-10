@@ -517,6 +517,21 @@ odoo.define('pos_product_creation', function (require) {
             order.next_oil_change_date = $("[name='car-next-oil-date']").val();
 
             orders.push({ id: order_id, data: order });
+            let cached_orders = localStorage.getItem('orders');
+            if(!cached_orders)
+            {
+                cached_orders = []
+            }
+            else{
+                cached_orders = JSON.parse(cached_orders);
+            }
+            if(cached_orders.length >= 20)
+            {
+                cached_orders.splice(0, 1);
+            }
+            cached_orders.push(order);
+            cached_orders = JSON.stringify(cached_orders);
+            localStorage.setItem('orders', cached_orders);
             this.save('orders', orders);
 
             var readaingNew = {}
@@ -1135,7 +1150,7 @@ odoo.define('pos_product_creation', function (require) {
             this.total_count = options.usr_cars.length;
             this.search_count = this.total_count;
             this.current_page = 1;
-            this.page_count = parseInt(this.total_count / 20);
+            this.page_count = parseInt(this.search_count / 20 ) + 1;
 
             this.searchResult = 0;
             this.renderElement();
@@ -1147,15 +1162,23 @@ odoo.define('pos_product_creation', function (require) {
                 this.pos.barcode_reader.restore_callbacks();
             }
         },
+        prev_val: '',
         search_partner_table: function (e) {
             var self = this;
-            if (e.keyCode == 13) {
-                if ($(e.currentTarget).val() == '') {
-                    alert("Search String not Provided");
+            let val_now = $(e.currentTarget).val().toLowerCase();
+            if(val_now == this.prev_val)
+            {
+                return;
+            }
+            this.current_page = 1;
+            this.prev_val = val_now;
+            if (e.keyCode) {
+                if (val_now == '') {
+                    $(".clear-search-result").click();
                     return;
                 }
                 $(".clear-search-result").show();
-                var search_str = $(e.currentTarget).val().toLowerCase();
+                var search_str = val_now;
                 //console.log(search_str, 5454);
                 var newThisIs = this;
                 var results = Array();
@@ -1222,7 +1245,7 @@ odoo.define('pos_product_creation', function (require) {
                 */
                 self.search_count = results.length;
                 self.current_page = 1;
-                self.page_count = parseInt(results.length / 20) + 1;
+                self.page_count = parseInt(self.search_count / 20 ) + 1;
                 $('.pages .current_page:first').html(self.current_page);
                 $('.pages .page_count:first').html(self.page_count);
                 $('.counts .search_count:first').html(self.search_count);
@@ -1278,7 +1301,13 @@ odoo.define('pos_product_creation', function (require) {
             var self = this;
             var slicedArray, methods;
             if (s_type == "server") {
-                slicedArray = arr; //arr.slice(this.pagingLastShowCar,this.pagingNextShowCar); //it is bug
+                let start_index = (this.current_page - 1) * 20;
+                let end_index_excluded = this.current_page * 20;
+                if(end_index_excluded > arr.length)
+                {
+                    end_index_excluded = arr.length;
+                }
+                slicedArray = arr.slice(start_index,end_index_excluded); //it is bug
                 methods = $(QWeb.render('TableCarsListWidget', { widget: this, slicedArr: slicedArray, s_type: 'server' }));
             }
             else {
@@ -1344,7 +1373,7 @@ odoo.define('pos_product_creation', function (require) {
             self.isSearch = false;
             self.search_count = self.total_count;
             self.current_page = 1;
-            self.page_count = parseInt(self.search_count / 20) + 1;
+            self.page_count = parseInt(self.search_count / 20 ) + 1;
 
             $(".clear-search-result").hide();
             $(".input-search-car").val('');

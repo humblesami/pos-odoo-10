@@ -380,12 +380,15 @@
                     </div>
                 </div>
                 <div class="footer">
-                    <div class="pages pt-17">
-                        <span class="static">Page:</span>
-                        <span class="current_page"><t t-esc="widget.current_page"/></span>
-                        <span class="static">out of</span>
-                        <span class="page_count"><t t-esc="widget.page_count"/></span>
-                    </div>
+                    <t t-if="widget.search_count">
+                        <div class="pages pt-17">
+                            <span class="static">Page:</span>
+                            <span class="current_page"><t t-esc="widget.current_page"/></span>
+                            <span class="static">out of</span>
+                            <span class="page_count"><t t-esc="widget.page_count"/></span>
+                        </div>
+                    </t>
+
                     <div class="counts pt-17">
                         <span class="static">Search Results:</span>
                         <span class="search_count"><t t-esc="widget.search_count"/></span>
