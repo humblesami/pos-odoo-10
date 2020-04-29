@@ -676,11 +676,33 @@ odoo.define('pos_product_creation', function (require) {
             methods.find(".customer-next-oil-date").datepicker({ minDate: 0 });
             methods.on('click', '.view-car-readings', function () {
                 var reading = [];
-                for (var i in self.pos.cars_readings) {
-                    reading.push(self.pos.cars_readings[i]);
+                let current_car = undefined;
+                var readings = [];
+                if(current_car_index != -1)
+                {
+                    current_car = current_car_index;
+                    if(!current_car.car_readings)
+                    {
+                        let car_id = current_car.id;
+                        let ind = 0;
+                        for (var reading of self.pos.cars_readings) {
+                            if(car_id == reading.car_id)
+                            {
+                                readings.push(reading);
+                            }
+                            if(reading.car_id)
+                            {
+                                console.log(reading.car_id, ind)
+                            }
+                            ind += 1;
+                        }
+                        current_car.car_readings = readings;
+                    }
                 }
+
                 self.gui.show_popup('car_reading_widget', {
                     'car_readings': reading,
+                    'current_car': current_car,
                     'car_id': $("select.customer-car-reading-per-day").find(":selected").val(),
                     'car_brand': $("select.customer-car-reading-per-day").find(":selected").attr("brand"),
                     'car_vehicleno': $("select.customer-car-reading-per-day").find(":selected").attr("vehicleno")

@@ -25,7 +25,24 @@
 {
     display:none;
 }
-.touch-scrollable.scrollable-y
+.client-cars-list
 {
-    height: calc(100vh - 300px);
+    line-height: normal;
+}
+.client-cars-list tr th, .client-cars-list tr td {
+    padding: 8px 8px;
+}
+.popup.car-list-creation .pos .popup .footer{
+    border-top:1px;
+}
+
+.pos .modal-dialog .popup.car-list-creation
+{
+    height: calc(100vh - 60px);
+}
+
+.pos .popup.car-list-creation .body
+{
+    margin-top: 0;
+    margin: 8px 16px;
 }
