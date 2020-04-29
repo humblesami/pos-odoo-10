@@ -868,9 +868,9 @@ odoo.define('pos_product_creation', function (require) {
                 self.gui.back();
             });
             this.$('.next').click(function () {
-                console.log(545342);
+//                console.log(545342);
                 self.save_changes();
-                //self.gui.back();
+                self.gui.back();
             });
             this.$('.new-customer').click(function () {
                 self.display_client_details('edit', {

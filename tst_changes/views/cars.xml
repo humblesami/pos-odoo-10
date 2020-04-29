@@ -107,7 +107,6 @@
                 </p>
             </field>
         </record>
-        <menuitem id="tst_menu_customer_cars" name="Customer Cars" parent="point_of_sale.menu_point_root" sequence="99" action="tst_customer_cars_action" />
 
         <record id="user_cars_reading_form" model="ir.ui.view">
             <field name="name">user.cars.readings.form</field>
@@ -117,6 +116,7 @@
                     <sheet>
                         <group>
                             <group>
+                                <field name="car_id"/>
                                 <field name="per_day_reading" />
                                 <field name="current_readaing" />
                                 <field name="car_per_day_read_expect" />
@@ -156,6 +156,26 @@
                 </tree>
             </field>
         </record>
+
+        <record id="view_list_car_readings" model="ir.ui.view">
+            <field name="name">Car Readings Tree View</field>
+            <field name="model">user.cars.readings</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="car_id" />
+                    <field name="per_day_reading" />
+                    <field name="current_readaing" />
+                    <field name="next_oil_change_km" />
+                    <field name="next_oil_change_date" />
+                    <field name="car_per_day_read_expect" />
+                </tree>
+            </field>
+        </record>
+        <record id="action_car_readings" model="ir.actions.act_window">
+            <field name="name">Car Readings</field>
+            <field name="res_model">user.cars.readings</field>
+			<field name="view_mode">tree,form</field>
+        </record>
         <record id="tst_cars_brands_configuration_action" model="ir.actions.act_window">
             <field name="name">Car Brands</field>
             <field name="res_model">user.cars.brands</field>
@@ -168,6 +188,23 @@
                 </p>
             </field>
         </record>
-        <menuitem id="tst_cars_brands_configuration_menu" name="Car Brands" parent="point_of_sale.menu_point_root" sequence="100" action="tst_cars_brands_configuration_action" />
+        <menuitem id="tst_menu_cars"
+            name="Customer Cars"
+            parent="point_of_sale.menu_point_root"
+            sequence="99"
+        />
+        <menuitem id="tst_menu_customer_cars"
+                  name="Cars Details"
+                  parent="tst_menu_cars"
+                  action="tst_customer_cars_action" />
+        <menuitem id="tst_cars_brands_configuration_menu"
+                  name="Car Brands"
+                  parent="tst_menu_cars"
+                  action="tst_cars_brands_configuration_action" />
+        <menuitem id="tst_menu_car_readings"
+                  name="Car Readings"
+                  action="action_car_readings"
+                  parent="tst_menu_cars"
+        />
     </data>
 </odoo>

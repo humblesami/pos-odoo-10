@@ -26,6 +26,11 @@ class TSTMyCars(models.Model):
         inner join public.user_cars_brands on user_cars.car_brand = user_cars_brands.id
         inner join public.res_partner on user_cars.partner_id = res_partner.id
         """
+        if offset:
+            query += ' offset '+str(offset)
+        if limit:
+            query += ' limit '+str(limit)
+
         cr.execute(query)
         cars = cr.dictfetchall()
         for ob in cars:
@@ -149,6 +154,7 @@ class TSTUserCarsAddBrands(models.Model):
 
 class TSTCarReadings(models.Model):
     _name = "user.cars.readings"
+    _rec_name = 'car_id'
 
     per_day_reading = fields.Float("Car Reading Per Days")
     current_readaing = fields.Float("Current Reading")

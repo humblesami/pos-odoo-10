@@ -19,6 +19,10 @@ class ResPartnerTSTInherit(models.Model):
                 from res_partner
                 where customer=True                    
         """
+        if offset:
+            query += ' offset '+str(offset)
+        if limit:
+            query += ' limit '+str(limit)
         cr.execute(query)
         partners = cr.dictfetchall()
         query = """
