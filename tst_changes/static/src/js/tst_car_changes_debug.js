@@ -20,8 +20,8 @@ odoo.define('pos_product_creation', function (require) {
 
     models.load_models({
         model: 'user.cars',
-        fields: ['name', 'id', 'car_brand', 'car_model', 'vehicle_no', 'car_status', 'partner_id', 'car_readaing_per_day', 'oil_change_after_readaing'],
-        domain: [['car_status', '=', 'active'],['pos_partners','=',true]],
+        fields: ['name', 'id', 'car_brand', 'car_model', 'vehicle_no', 'car_status', 'partner_id', 'car_readaing_per_day', 'oil_change_after_readaing', 'tst_pos_data'],
+        domain: [['car_status', '=', 'active']],
         loaded: function (self, usr_cars) {
             self.usr_cars = usr_cars;
             self.db.add_cars(usr_cars);
@@ -1052,14 +1052,7 @@ odoo.define('pos_product_creation', function (require) {
             var progress = 0;
             var progress_step = 1.0 / self.models.length;
             var tmp = {}; // this is used to share a temporary state between models loaders
-            for(let ob of self.models)
-            {
-                if(ob.model == 'res.partner')
-                {
-                    ob.domain = [['customer','=',true],['pos_partners','=',true]];
-                    break;
-                }
-            }
+
             function load_model(index){
                 if(index >= self.models.length){
                     loaded.resolve();
@@ -1082,6 +1075,13 @@ odoo.define('pos_product_creation', function (require) {
 
                     var records;
                     if( model.model ){
+                        if(model.model == 'res.partner' || model.model == 'user.cars')
+                        {
+                            if(model.fields[model.fields-1] != 'tst_pos_data')
+                            {
+                                model.fields.push('tst_pos_data');
+                            }
+                        }
                         if (model.ids) {
                             records = new Model(model.model).call('read',[ids,fields],context);
                         } else {

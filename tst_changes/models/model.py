@@ -8,27 +8,11 @@ class TSTMyCars(models.Model):
     _name = 'user.cars'
     _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
 
-    @api.model
-    def name_search(self, name, args=None, operator='ilike', limit=100):
-        args = args or []
-        domain = []
-        if name:
-            domain = ['|', ('name', operator, name), ('vehicle_no', operator, name)]
-        pos = self.search(domain + args, limit=limit)
-        return pos.name_get()
-
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-
-        pos_partners = False
-        if len(domain):
-            for dom in domain:
-                if dom[0] == 'pos_partners':
-                    pos_partners = True
-                    break
-        if not pos_partners:
-            res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
+    def read(self, fields=None, load='_classic_read'):
+        last_field = fields[len(fields) - 1]
+        if last_field != 'tst_pos_data':
+            res = super(TSTMyCars, self).read(fields=fields, load=load)
             return res
-
         cr = self._cr
         query = """
         SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,
@@ -37,10 +21,6 @@ class TSTMyCars(models.Model):
         inner join public.user_cars_brands on user_cars.car_brand = user_cars_brands.id
         inner join public.res_partner on user_cars.partner_id = res_partner.id
         """
-        if offset:
-            query += ' offset '+str(offset)
-        if limit:
-            query += ' limit '+str(limit)
 
         cr.execute(query)
         cars = cr.dictfetchall()
@@ -49,6 +29,15 @@ class TSTMyCars(models.Model):
             ob['partner_id'] = [ob['customer_id'], ob['customer_name']]
 
         return cars
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        args = args or []
+        domain = []
+        if name:
+            domain = ['|', ('name', operator, name), ('vehicle_no', operator, name)]
+        pos = self.search(domain + args, limit=limit)
+        return pos.name_get()
 
     @api.multi
     def name_get(self):
