@@ -1,8 +1,6 @@
-from odoo import models, fields, exceptions, api, tools, _
-from odoo.exceptions import UserError
 from functools import partial
-import pytz
-from datetime import timedelta, datetime
+from odoo import models, fields, api
+from odoo.exceptions import UserError
 
 
 class ResPartnerTSTInherit(models.Model):
@@ -11,13 +9,28 @@ class ResPartnerTSTInherit(models.Model):
     cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
 
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+
+        pos_partners = False
+        if len(domain):
+            for dom in domain:
+                if dom[0] == 'pos_partners':
+                    pos_partners = True
+                    break
+        if not pos_partners:
+            res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset, limit, order)
+            return res
+
         cr = self._cr
         query = """
                 SELECT distinct res_partner.name as name,res_partner.id,res_partner.mobile,res_partner.barcode,
                 res_partner.street,res_partner.zip,res_partner.city,res_partner.country_id, res_partner.state_id,
                 res_partner.email, res_partner.vat, res_partner.write_date
                 from res_partner
-                where customer=True                    
+                join
+                (
+                    SELECT distinct partner_id FROM public.user_cars
+                ) as cst on res_partner.id=cst.partner_id
+                where customer=True
         """
         if offset:
             query += ' offset '+str(offset)
@@ -56,6 +69,7 @@ class TSTInheritPosOrderLine(models.Model):
         if self.price_unit and self.discount:
             getit = (self.price_unit / 100) * self.discount
             return getit
+
 
 class TSTInheritPosOrder(models.Model):
     _inherit = "pos.order"
@@ -163,10 +177,12 @@ class TSTInheritPosOrder(models.Model):
             'reading_id': False
         }
 
+
 class TSTPOSConfigInherit(models.Model):
     _inherit = "pos.config"
 
     reciept_logo = fields.Binary('Logo')
+
 
 class TSTPOSResPartner(models.Model):
     _inherit = "res.partner"
@@ -182,6 +198,7 @@ class TSTPOSResPartner(models.Model):
                 raise ValueError("Phone No Must not be greater than 11 digits.")
             if self.search_count([('phone','=',self.phone)]) > 1:
                 raise ValueError('Phone No Already Exists')
+
 
 class DNSSurveyProductTemplateInherit(models.Model):
     _inherit = "product.template"

@@ -8,16 +8,12 @@ odoo.define('pos_product_creation', function (require) {
     var chrome = require('point_of_sale.chrome');
     var core = require('web.core');
     var pos_db = require('point_of_sale.DB');
-    var screens = require('point_of_sale.screens');
-    var pos_model = require('point_of_sale.models');
-    var utils = require('web.utils');
+    var screens = require('point_of_sale.screens');    
     var PosBaseWidget = require('point_of_sale.BaseWidget');
 
     var QWeb = core.qweb;
     var _t = core._t;
 
-    var BarcodeParser = require('barcodes.BarcodeParser');
-    var PopupWidget = require('point_of_sale.popups');
     var RestaurantFloor = require('pos_restaurant.floors');
     var ScreenWidget = screens.ClientListScreenWidget;
     var PaymentScreenWidget = screens.PaymentScreenWidget;
@@ -25,7 +21,7 @@ odoo.define('pos_product_creation', function (require) {
     models.load_models({
         model: 'user.cars',
         fields: ['name', 'id', 'car_brand', 'car_model', 'vehicle_no', 'car_status', 'partner_id', 'car_readaing_per_day', 'oil_change_after_readaing'],
-        domain: function (self) { return [['car_status', '=', 'active']]; },
+        domain: [['car_status', '=', 'active'],['pos_partners','=',true]],
         loaded: function (self, usr_cars) {
             self.usr_cars = usr_cars;
             self.db.add_cars(usr_cars);
@@ -61,6 +57,7 @@ odoo.define('pos_product_creation', function (require) {
     models.load_fields('res.partner', 'cars_id');
     models.load_fields('pos.config', 'reciept_logo');
     models.load_fields('product.product', ['product_disc_percentage', 'product_disc', 'pos_discount_apply']);
+
     chrome.UsernameWidget.include({
         renderElement: function () {
             var self = this;
@@ -90,7 +87,9 @@ odoo.define('pos_product_creation', function (require) {
             this.car_readings = [];
             this.car_id = '';
             this.car_brand = '';
-            this.car_vehicleno = '';
+            this.name = '';
+            this.vehicle_no = '';
+            this.selected_car = undefined;
         },
         start: function () {
             this._super();
@@ -106,9 +105,10 @@ odoo.define('pos_product_creation', function (require) {
             options = options || {};
             this._super(options);
             this.car_readings = options.car_readings
-            this.car_id = options.car_id
+            this.car_id = options.car_id;
+            this.current_car = options.current_car;
             this.car_brand = options.car_brand;
-            this.car_vehicleno = options.car_vehicleno;
+            this.vehicle_no = options.vehicle_no;
             this.renderElement();
         },
         renderElement: function () {
@@ -215,7 +215,7 @@ odoo.define('pos_product_creation', function (require) {
             this.usr_cars = options.usr_cars;
             this.car_brands = options.car_brands;
             var curr = -1;
-            if (this.pos.table.currentCar) {
+            if (this.pos.table.currentCar.id) {
                 curr = parseInt(this.pos.table.currentCar['id']);
             }
             this.currentCar = curr;
@@ -662,47 +662,49 @@ odoo.define('pos_product_creation', function (require) {
                 self.customer_changed();
             }, this);
         },
+
         render_readingwidget: function () {
             var self = this;
-            var current_car_index = -1;
-            if (self.pos.table) {
-                if (self.pos.table.currentCar) {
-                    if (self.pos.table.currentCar['car_index_id']) {
-                        current_car_index = self.pos.usr_cars[parseInt(self.pos.table.currentCar['car_index_id'])];
+            let selected_car = undefined;
+            let is_car_selected = false;
+            
+            let car_on_table_id = undefined;
+            if(self.pos.table)
+            {
+                car_on_table_id = self.pos.table.currentCar;
+                if(car_on_table_id)
+                {
+                    car_on_table_id = car_on_table_id.id;
+                }
+            }
+            if(car_on_table_id)
+            {
+                for (let ob of self.pos.usr_cars)
+                {
+                    if(ob.id == car_on_table_id)
+                    {
+                        is_car_selected = true;
+                        selected_car = ob;
+                        break;
                     }
                 }
             }
-            var methods = $(QWeb.render('TstCarReadingWidget', { widget: this, currentCarIndex: current_car_index }));
+            var methods = $(QWeb.render('TstCarReadingWidget', { widget: this, selected_car: selected_car }));
             methods.find(".customer-next-oil-date").datepicker({ minDate: 0 });
             methods.on('click', '.view-car-readings', function () {
-                var reading = [];
-                let current_car = undefined;
                 var readings = [];
-                if(current_car_index != -1)
+                if(car_on_table_id && selected_car)
                 {
-                    current_car = current_car_index;
-                    if(!current_car.car_readings)
-                    {
-                        let car_id = current_car.id;
-                        let ind = 0;
-                        for (var reading of self.pos.cars_readings) {
-                            if(car_id == reading.car_id)
-                            {
-                                readings.push(reading);
-                            }
-                            if(reading.car_id)
-                            {
-                                console.log(reading.car_id, ind)
-                            }
-                            ind += 1;
-                        }
-                        current_car.car_readings = readings;
-                    }
+                    readings = self.pos.cars_readings.filter((el)=>{
+                        let matching = el.car_id[0] == car_on_table_id;
+                        return matching;
+                    });
+                    selected_car.car_readings = readings;
                 }
-
                 self.gui.show_popup('car_reading_widget', {
-                    'car_readings': reading,
-                    'current_car': current_car,
+                    'car_readings': readings,
+                    'current_car': selected_car,
+                    'name': 'Sami',
                     'car_id': $("select.customer-car-reading-per-day").find(":selected").val(),
                     'car_brand': $("select.customer-car-reading-per-day").find(":selected").attr("brand"),
                     'car_vehicleno': $("select.customer-car-reading-per-day").find(":selected").attr("vehicleno")
@@ -868,9 +870,8 @@ odoo.define('pos_product_creation', function (require) {
                 self.gui.back();
             });
             this.$('.next').click(function () {
-//                console.log(545342);
                 self.save_changes();
-                self.gui.back();
+                //self.gui.back();
             });
             this.$('.new-customer').click(function () {
                 self.display_client_details('edit', {
@@ -930,7 +931,7 @@ odoo.define('pos_product_creation', function (require) {
                     self.gui.show_popup('car_customer_search_widget', {
                         'usr_cars': self.pos.usr_cars,
                         'partners': self.pos.partners,
-                        'current_car_id': ((self.pos.table.currentCar) ? self.pos.table.currentCar['id'] : ''),
+                        'current_car_id': ((self.pos.table.currentCar.id) ? self.pos.table.currentCar['id'] : ''),
                         'customerSelected': this.new_client.id,
                         'customerSelectedName': this.new_client.name
                     });
@@ -1010,7 +1011,7 @@ odoo.define('pos_product_creation', function (require) {
             this.update_summary();
 
             if ($(".order .orderlines .orderline").length == 0) {
-                if (this.pos.table.currentCar) {
+                if (this.pos.table.currentCar.id) {
                     this.pos.table.currentCar = [];
                     this.pos.table.currentCustomer = [];
                     this.pos.table.selected_employees = [];
@@ -1028,7 +1029,7 @@ odoo.define('pos_product_creation', function (require) {
 
             this.el.querySelector('.default-partner-car').addEventListener('click', function () {
                 var currentCar = '';
-                if (self.pos.table.currentCar) {
+                if (self.pos.table.currentCar.id) {
                     if (self.pos.table.currentCar['id']) {
                         currentCar = self.pos.table.currentCar;
                     }
@@ -1045,6 +1046,86 @@ odoo.define('pos_product_creation', function (require) {
     });
 
     models.PosModel = models.PosModel.extend({
+        load_server_data: function(){
+            var self = this;
+            var loaded = new $.Deferred();
+            var progress = 0;
+            var progress_step = 1.0 / self.models.length;
+            var tmp = {}; // this is used to share a temporary state between models loaders
+            for(let ob of self.models)
+            {
+                if(ob.model == 'res.partner')
+                {
+                    ob.domain = [['customer','=',true],['pos_partners','=',true]];
+                    break;
+                }
+            }
+            function load_model(index){
+                if(index >= self.models.length){
+                    loaded.resolve();
+                }else{
+                    var model = self.models[index];
+                    self.chrome.loading_message(_t('Loading')+' '+(model.label || model.model || ''), progress);
+
+                    var cond = typeof model.condition === 'function'  ? model.condition(self,tmp) : true;
+                    if (!cond) {
+                        load_model(index+1);
+                        return;
+                    }
+
+                    var fields =  typeof model.fields === 'function'  ? model.fields(self,tmp)  : model.fields;
+                    var domain =  typeof model.domain === 'function'  ? model.domain(self,tmp)  : model.domain;
+                    var context = typeof model.context === 'function' ? model.context(self,tmp) : model.context;
+                    var ids     = typeof model.ids === 'function'     ? model.ids(self,tmp) : model.ids;
+                    var order   = typeof model.order === 'function'   ? model.order(self,tmp):    model.order;
+                    progress += progress_step;
+
+                    var records;
+                    if( model.model ){
+                        if (model.ids) {
+                            records = new Model(model.model).call('read',[ids,fields],context);
+                        } else {
+                            records = new Model(model.model)
+                                .query(fields)
+                                .filter(domain)
+                                .order_by(order)
+                                .context(context)
+                                .all();
+                        }
+                        records.then(function(result){
+                                try{    // catching exceptions in model.loaded(...)
+                                    $.when(model.loaded(self,result,tmp))
+                                        .then(function(){ load_model(index + 1); },
+                                              function(err){ loaded.reject(err); });
+                                }catch(err){
+                                    console.error(err.message, err.stack);
+                                    loaded.reject(err);
+                                }
+                            },function(err){
+                                loaded.reject(err);
+                            });
+                    }else if( model.loaded ){
+                        try{    // catching exceptions in model.loaded(...)
+                            $.when(model.loaded(self,tmp))
+                                .then(  function(){ load_model(index +1); },
+                                        function(err){ loaded.reject(err); });
+                        }catch(err){
+                            loaded.reject(err);
+                        }
+                    }else{
+                        load_model(index + 1);
+                    }
+                }
+            }
+
+            try{
+                load_model(0);
+            }catch(err){
+                loaded.reject(err);
+            }
+
+            return loaded;
+        },
         set_table: function (table) {
             if (!table) { // no table ? go back to the floor plan, see ScreenSelector
                 this.set_order(null);
@@ -1138,8 +1219,11 @@ odoo.define('pos_product_creation', function (require) {
             this.total_count = 0;
 
             $('body').on('focus', '.input-search-car', function (ev) {
-                ev.target.select();
+                setTimeout(function(){
+                    ev.target.select();
+                },500);
             });
+
             this.customerSelectedName = '';
         },
         start: function () {
@@ -1176,8 +1260,15 @@ odoo.define('pos_product_creation', function (require) {
 
             this.searchResult = 0;
             this.renderElement();
-            this.$('.input-search-car').focus();
-            this.$('.input-search-car')[0].select();
+            let search_input = $('.input-search-car');
+            setTimeout(function(){
+                if(options.car_id)
+                {
+                    search_input.val(options.current_car_id.vehicle_no);
+                    search_input.focus();
+                }
+            },1000);
+
         },
         close: function () {
             if (this.pos.barcode_reader) {
@@ -1187,8 +1278,16 @@ odoo.define('pos_product_creation', function (require) {
         prev_val: '',
         search_partner_table: function (e) {
             var self = this;
+            if(e.keyCode == 27)
+            {
+                let cancel_button = $('.car-list-creation .footer .button.cancel:first');
+                if(cancel_button.length)
+                {
+                    cancel_button.click();
+                }
+            }
             let val_now = $(e.currentTarget).val().toLowerCase();
-            if(val_now == this.prev_val)
+            if(val_now == this.prev_val && e.keyCode != 13)
             {
                 return;
             }

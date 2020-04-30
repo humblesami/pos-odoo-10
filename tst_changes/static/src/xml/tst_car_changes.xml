@@ -32,52 +32,49 @@
     </t>
     <t t-name="TstCarReadingWidget">
         <div class="tst-car-readings-section">
-            <div class="client-detail">
-                <div class="button view-car-readings">View Readings</div>
-            </div>
-            <t t-if="widget.pos.table and currentCarIndex!=-1">
-            <t t-if="widget.pos.table.currentCar">
-            <div class="client-detail">
-                <span class="label">Selected Car</span>
-                <input class="detail customer-car-reading-per-day" name="select-car-model" type="hidden" t-att-value="widget.pos.table.currentCar['id']" />
-                <div class="customer-car-reading-per-day-display">
-                    <t t-esc="currentCarIndex.car_brand[1]" /> | <t t-esc="currentCarIndex.vehicle_no" />
+            <t t-if="!selected_car">
+                <h3>No car selected</h3>
+            </t>
+            <t t-if="selected_car">
+                <div class="client-detail">
+                    <div class="button view-car-readings">View Readings</div>
                 </div>
-            </div>
-            </t>
-            </t>
-            <t t-set="carPerDayRead" t-value="0" />
-            <t t-set="carPerDayReadExpected" t-value="0" />
-            <t t-if="widget.pos.changed.selectedClient">
-                <t t-if="widget.pos.table.currentCar">
-                    <t t-foreach="widget.pos.usr_cars" t-as="currCar">
-                        <t t-if="widget.pos.table.currentCar['id']==currCar.id">
-                            <t t-set="carPerDayRead" t-value="currCar.car_readaing_per_day" />
-                            <t t-set="carPerDayReadExpected" t-value="currCar.oil_change_after_readaing" />
-                        </t>
-                    </t>
+                <div class="client-detail">
+                    <span class="label">Selected Car</span>
+                    <input class="detail customer-car-reading-per-day" name="select-car-model" type="hidden"
+                           t-att-value="selected_car.id" />
+                    <div class="customer-car-reading-per-day-display">
+                        <t t-esc="selected_car.car_brand[1]" /> | <t t-esc="selected_car.vehicle_no" />
+                    </div>
+                </div>
+
+                <t t-set="carPerDayRead" t-value="0" />
+                <t t-set="carPerDayReadExpected" t-value="0" />
+                <t t-if="widget.pos.changed.selectedClient">
+                    <t t-set="carPerDayRead" t-value="selected_car.car_readaing_per_day" />
+                    <t t-set="carPerDayReadExpected" t-value="selected_car.oil_change_after_readaing" />
                 </t>
+                <div class="client-detail">
+                    <span class="label">Car Reading (Per Day)</span>
+                    <input type="number" class="detail customer-oil-change customer-car-reading-per-day-input" name="car-reading-per-day" placeholder="Car Reading Per Day" t-att-value="carPerDayRead" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Expected Car Reading After KM</span>
+                    <input type="number" class="detail customer-oil-change customer-car-reading-expected" name="car-reading-per-expected" placeholder="Expected Car Reading After KM"  t-att-value="carPerDayReadExpected" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Current Reading</span>
+                    <input type="number" class="detail customer-oil-change customer-current-reading" name="car-current-reading" placeholder="Car Current Reading" value="" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Next Service</span>
+                    <input type="number" class="detail customer-oil-change customer-next-oil-change" name="car-next-oil-change" placeholder="Next Service" readonly="1" value="" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Next Service Date</span>
+                    <input type="text" class="detail customer-oil-change customer-next-oil-date" name="car-next-oil-date" placeholder="Next Service Date" readonly="1" value="" />
+                </div>
             </t>
-            <div class="client-detail">
-                <span class="label">Car Reading (Per Day)</span>
-                <input type="number" class="detail customer-oil-change customer-car-reading-per-day-input" name="car-reading-per-day" placeholder="Car Reading Per Day" t-att-value="carPerDayRead" />
-            </div>
-            <div class="client-detail">
-                <span class="label">Expected Car Reading After KM</span>
-                <input type="number" class="detail customer-oil-change customer-car-reading-expected" name="car-reading-per-expected" placeholder="Expected Car Reading After KM"  t-att-value="carPerDayReadExpected" />
-            </div>
-            <div class="client-detail">
-                <span class="label">Current Reading</span>
-                <input type="number" class="detail customer-oil-change customer-current-reading" name="car-current-reading" placeholder="Car Current Reading" value="" />
-            </div>
-            <div class="client-detail">
-                <span class="label">Next Service</span>
-                <input type="number" class="detail customer-oil-change customer-next-oil-change" name="car-next-oil-change" placeholder="Next Service" readonly="1" value="" />
-            </div>
-            <div class="client-detail">
-                <span class="label">Next Service Date</span>
-                <input type="text" class="detail customer-oil-change customer-next-oil-date" name="car-next-oil-date" placeholder="Next Service Date" readonly="1" value="" />
-            </div>
         </div>
     </t>
     <t t-name="CarCreationWidget">
@@ -173,8 +170,8 @@
                 <t t-if="widget.current_car">
                     <div class="body">
                         <div class="product-creation-form">
-                            Car Brand: <t t-esc="widget.current_car.car_brand" /><br />
-                            Vehicle No: <t t-esc="widget.current_car.car_vehicleno" />
+                            Car Brand: <t t-esc="widget.current_car.car_brand[1]" /><br />
+                            Vehicle No: <t t-esc="widget.current_car.vehicle_no" />
                         </div>
                         <div class="touch-scrollable scrollable-y" style="height: 480px">
                             <table class="client-cars-list">
@@ -191,7 +188,6 @@
                                 <tbody>
                                     <t t-set="counter" t-value="0" />
                                     <tr t-foreach="widget.current_car.car_readings" t-as="reading">
-                                        <t t-if="reading.car_id[0]==widget.car_id">
                                         <td><span t-esc="reading.per_day_reading" /></td>
                                         <td><span t-esc="reading.current_readaing" /></td>
                                         <td><span t-esc="reading.create_date" /></td>
@@ -205,7 +201,6 @@
                                             </t>
                                         </td>
                                         <t t-set="counter" t-value="counter+1" />
-                                        </t>
                                     </tr>
                                     <t t-if="counter==0">
                                     <tr><td colspan="5" class="text-center"><strong>Readings Not Found Against that Car</strong></td></tr>
@@ -354,10 +349,10 @@
                 <div class="title">Select and Search Cars</div>
                 <div class="body">
                     <t t-if="widget.customerSelected!='n'">
-                    <div class="search-default-cars" style="margin-bottom: 10px;">
-                        Please select Cars for<br />
-                        <b>Customer:</b> <t t-esc="widget.customerSelectedName" />
-                    </div>
+                        <div class="search-default-cars" style="margin-bottom: 10px;">
+                            Please select Cars for<br />
+                            <b>Customer:</b> <t t-esc="widget.customerSelectedName" />
+                        </div>
                     </t>
                     <div class="search-default-cars" style="margin-bottom: 10px;">
                         <div style="text-align: left;margin-bottom:5px; display:none">
@@ -366,8 +361,10 @@
                         </div>
                         <input type="text" placeholder="Search" class="input-search-car" />
                         <input type="hidden" class="input-set-car" />
-                        <a href="javascript:;" last-show="0" class="show-last-twenty cars-paging">&lt; Show Last 20</a>
-                        <a href="javascript:;" last-show="20" class="show-next-twenty cars-paging">Show Next 20 &gt;</a>
+                        <t t-if="widget.customerSelected=='n'">
+                            <a href="javascript:;" last-show="0" class="show-last-twenty cars-paging">&lt; Show Last 20</a>
+                            <a href="javascript:;" last-show="20" class="show-next-twenty cars-paging">Show Next 20 &gt;</a>
+                        </t>
                     </div>
                     <div class="touch-scrollable scrollable-y" style="height: calc(100vh - 247px);">
                         <table class="client-cars-list">
@@ -386,21 +383,24 @@
                     </div>
                 </div>
                 <div class="footer">
-                    <t t-if="widget.search_count">
-                        <div class="pages pt-17">
-                            <span class="static">Page:</span>
-                            <span class="current_page"><t t-esc="widget.current_page"/></span>
+
+                    <t t-if="widget.customerSelected=='n'">
+                        <t t-if="widget.search_count">
+                            <div class="pages pt-17">
+                                <span class="static">Page:</span>
+                                <span class="current_page"><t t-esc="widget.current_page"/></span>
+                                <span class="static">out of</span>
+                                <span class="page_count"><t t-esc="widget.page_count"/></span>
+                            </div>
+                        </t>
+                        <div class="counts pt-17">
+                            <span class="static">Search Results:</span>
+                            <span class="search_count"><t t-esc="widget.search_count"/></span>
                             <span class="static">out of</span>
-                            <span class="page_count"><t t-esc="widget.page_count"/></span>
+                            <span class="total_count"><t t-esc="widget.total_count"/></span>
                         </div>
                     </t>
 
-                    <div class="counts pt-17">
-                        <span class="static">Search Results:</span>
-                        <span class="search_count"><t t-esc="widget.search_count"/></span>
-                        <span class="static">out of</span>
-                        <span class="total_count"><t t-esc="widget.total_count"/></span>
-                    </div>
                     <div class="button cancel">
                         Cancel
                     </div>

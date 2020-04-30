@@ -18,6 +18,17 @@ class TSTMyCars(models.Model):
         return pos.name_get()
 
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+
+        pos_partners = False
+        if len(domain):
+            for dom in domain:
+                if dom[0] == 'pos_partners':
+                    pos_partners = True
+                    break
+        if not pos_partners:
+            res = super(TSTMyCars, self).search_read(domain, fields, offset, limit, order)
+            return res
+
         cr = self._cr
         query = """
         SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,
@@ -131,11 +142,13 @@ class TSTMyCars(models.Model):
     pos_order = fields.One2many("pos.order", 'car_id', string="Car Orders")
     transfer_history = fields.One2many("user.cars.transfer.history", 'car_id', string="Car Transfer History")
 
+
 class TSTCarTransferHistory(models.Model):
     _name = 'user.cars.transfer.history'
 
     partner_id = fields.Many2one('res.partner', 'Previous Customer Name')
     car_id = fields.Many2one('user.cars', 'Car ID')
+
 
 class TSTUserCarsAddBrands(models.Model):
     _name = 'user.cars.brands'
