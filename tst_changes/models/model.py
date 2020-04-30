@@ -15,6 +15,7 @@ class TSTMyCars(models.Model):
             return res
         cr = self._cr
         user = self.env.user
+        customer_restriction = ''
         if not user.has_group('sales_team.group_sale_manager'):
             customer_restriction = ' and create_uid='+str(self._uid)
         query = """
