@@ -14,12 +14,20 @@ class TSTMyCars(models.Model):
             res = super(TSTMyCars, self).read(fields=fields, load=load)
             return res
         cr = self._cr
+        user = self.env.user
+        if not user.has_group('sales_team.group_sale_manager'):
+            customer_restriction = ' and create_uid='+str(self._uid)
         query = """
         SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,
         res_partner.id as customer_id, user_cars_brands.car_brand 
         FROM public.user_cars 
         inner join public.user_cars_brands on user_cars.car_brand = user_cars_brands.id
-        inner join public.res_partner on user_cars.partner_id = res_partner.id
+        inner join
+        (
+            select id, name from public.res_partner where customer=true
+            """+customer_restriction+"""
+        ) res_partner
+        on user_cars.partner_id = res_partner.id        
         """
 
         cr.execute(query)

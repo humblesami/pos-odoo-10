@@ -14,16 +14,21 @@ class ResPartnerTSTInherit(models.Model):
             res = super(ResPartnerTSTInherit, self).read(fields=fields, load=load)
             return res
         cr = self._cr
+        customer_restriction = ''
+        user = self.env.user
+        if not user.has_group('sales_team.group_sale_manager'):
+            customer_restriction = ' and create_uid='+str(self._uid)
         query = """
                 SELECT distinct res_partner.name as name,res_partner.id,res_partner.mobile,res_partner.barcode,
                 res_partner.street,res_partner.zip,res_partner.city,res_partner.country_id, res_partner.state_id,
                 res_partner.email, res_partner.vat, res_partner.write_date
-                from res_partner
+                from public.res_partner
                 join
                 (
-                    SELECT distinct partner_id FROM public.user_cars
+                    SELECT distinct partner_id FROM public.user_cars                    
                 ) as cst on res_partner.id=cst.partner_id
-                where customer=True
+                where customer=true
+                """+customer_restriction+"""
         """
         cr.execute(query)
         partners = cr.dictfetchall()
