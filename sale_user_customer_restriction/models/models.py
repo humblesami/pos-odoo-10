@@ -1,19 +1,15 @@
-from odoo import models
+from odoo import models, api
 
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    def search(self, args, offset=0, limit=None, order=None, count=False):
+    @api.model
+    def _where_calc(self, domain, active_test=True):
         user = self.env.user
-        if user.has_group('sales_team.group_sale_salesman') or user.has_group('group_sale_salesman_all_leads'):
-            args.append(('create_uid', '=', self._uid))
-        res = super(ResPartner, self).search(args, offset, limit, order, count)
+        if not user.has_group('sales_team.group_sale_manager') and (
+                user.has_group('sales_team.group_sale_salesman') or user.has_group('group_sale_salesman_all_leads')):
+            domain.append(('create_uid', '=', self._uid))
+        res = super(ResPartner, self)._where_calc(domain, active_test)
         return res
 
-    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
-        user = self.env.user
-        if user.has_group('sales_team.group_sale_salesman') or user.has_group('group_sale_salesman_all_leads'):
-            args.append(('create_uid', '=', self._uid))
-        res = super(ResPartner, self)._name_search(name, args, operator, name_get_uid)
-        return res
