@@ -1,7 +1,7 @@
 {
     'name': "Cybill Send SMS",
     'version': '0.1',
-    'author': "Cybill Technologies",
+    'author': "Cybill Technologies sami",
     'category': 'Tools',
     'summary':'You can use multiple gateway for multiple sms template to send SMS.',
     'description':'Allows you to send SMS to the mobile no.',
