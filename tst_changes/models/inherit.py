@@ -8,50 +8,67 @@ class ResPartnerTSTInherit(models.Model):
 
     cars_id = fields.One2many("user.cars", 'partner_id')
 
+    # def search(self, args, offset=0, limit=None, order=None, count=False):
+    #     limit = 100
+    #     res = super (ResPartnerTSTInherit, self).search(args, offset=offset, limit=limit, order=order, count=count)
+    #     return res
+
     def read(self, fields=None, load='_classic_read'):
         last_field = fields[len(fields) - 1]
         if last_field != 'tst_pos_data':
             res = super(ResPartnerTSTInherit, self).read(fields=fields, load=load)
             return res
         cr = self._cr
-        customer_restriction = ''
-        user = self.env.user
-        if not user.has_group('sales_team.group_sale_manager'):
-            customer_restriction = ' and create_uid='+str(self._uid)
         query = """
-                SELECT distinct res_partner.name as name,res_partner.id,res_partner.mobile,res_partner.barcode,
-                res_partner.street,res_partner.zip,res_partner.city,res_partner.country_id, res_partner.state_id,
-                res_partner.email, res_partner.vat, res_partner.write_date
-                from public.res_partner
+                SELECT distinct rp.name as name,rp.id,rp.mobile,rp.barcode,
+                rp.street,rp.zip,rp.city,rp.country_id, rp.state_id,
+                rp.email, rp.vat, rp.write_date,
+                rp.mobile as phone                
+                from public.res_partner rp
                 join
                 (
                     SELECT distinct partner_id FROM public.user_cars                    
-                ) as cst on res_partner.id=cst.partner_id
+                ) as cst on rp.id=cst.partner_id
                 where customer=true
-                """+customer_restriction+"""
         """
         cr.execute(query)
         partners = cr.dictfetchall()
-        query = """
-                select id,name from res_country rc join (select distinct country_id from res_partner) pc on pc.country_id= rc.id
-                """
-        cr.execute(query)
-        res_countries = cr.dictfetchall()
-        default_country = [1, 'US']
-        if len(res_countries):
-            countries_dict = {}
-            for country in res_countries:
-                countries_dict[country['id']] = country
-            default_country = [res_countries[0]['id'], res_countries[0]['name']]
 
+        partner_ids = []
+        partners_dict = {}
         for customer in partners:
-            if customer.get('country_id'):
-                country = countries_dict[customer['country_id']]
-                customer['country_id'] = [country['id'], country['name']]
-            else:
-                customer['country_id'] = default_country
+            for key in customer:
+                if not customer.get(key):
+                    customer[key] = False
+            customer['cars_id'] = []
+            customer['write_date'] = customer['write_date'][0:19]
+            partner_ids.append(customer['id'])
+            partners_dict[customer['id']] = customer
+
+        self.get_related_parents(partners_dict, partner_ids, 'country_id')
+        self.get_related_parents(partners_dict, partner_ids, 'state_id')
+        self.get_related_parents(partners_dict, partner_ids, 'property_account_position_id')
+        self.get_related_children(cr, partners_dict, 'cars_id')
+
         res = partners
         return res
+
+    def create(self, vals):
+        res = super(ResPartnerTSTInherit, self).create
+
+    def get_related_parents(self, partners_dict, partner_ids, field_name):
+        records = self.env['res.partner'].search_read([('id', 'in', partner_ids), (field_name, '!=', False)], fields=[field_name])
+        for ob in records:
+            partners_dict[ob['id']][field_name] = [ob[field_name][0], ob[field_name][1]]
+        return partners_dict
+
+    def get_related_children(self, cr, partners_dict, field_name):
+        query = "select id, partner_id from user_cars"
+        cr.execute(query)
+        res = cr.dictfetchall()
+        for obj in res:
+            partners_dict[obj['partner_id']]['cars_id'].append(obj['id'])
+        return True
 
     @api.constrains('mobile','phone')
     def _check_number_format(self):
