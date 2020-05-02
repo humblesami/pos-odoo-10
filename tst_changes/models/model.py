@@ -8,11 +8,14 @@ class TSTMyCars(models.Model):
     _name = 'user.cars'
     _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
 
-    def read(self, fields=None, load='_classic_read'):
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        res = super(TSTMyCars, self).search(domain, offset, limit, order, count=False)
         last_field = fields[len(fields) - 1]
-        if last_field != 'tst_pos_data':
-            res = super(TSTMyCars, self).read(fields=fields, load=load)
+        if len(res) < 200 or last_field != 'tst_pos_data':
+            res = super(TSTMyCars, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
             return res
+
         cr = self._cr
         query = """
         SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,

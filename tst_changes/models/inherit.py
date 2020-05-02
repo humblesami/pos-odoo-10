@@ -8,16 +8,15 @@ class ResPartnerTSTInherit(models.Model):
 
     cars_id = fields.One2many("user.cars", 'partner_id')
 
-    # def search(self, args, offset=0, limit=None, order=None, count=False):
-    #     limit = 100
-    #     res = super (ResPartnerTSTInherit, self).search(args, offset=offset, limit=limit, order=order, count=count)
-    #     return res
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
 
-    def read(self, fields=None, load='_classic_read'):
+        res = super(ResPartnerTSTInherit, self).search(domain, offset, limit, order, count=False)
         last_field = fields[len(fields) - 1]
-        if last_field != 'tst_pos_data':
-            res = super(ResPartnerTSTInherit, self).read(fields=fields, load=load)
+        if len(res) < 200 or last_field != 'tst_pos_data':
+            res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
             return res
+
         cr = self._cr
         query = """
                 SELECT distinct rp.name as name,rp.id,rp.mobile,rp.barcode,
@@ -53,8 +52,21 @@ class ResPartnerTSTInherit(models.Model):
         res = partners
         return res
 
-    def create(self, vals):
-        res = super(ResPartnerTSTInherit, self).create
+    @api.model
+    def create_from_ui(self, partner):
+        """ create or modify a partner from the point of sale ui.
+            partner contains the partner's fields. """
+        # image is a dataurl, get the data after the comma
+        if partner.get('image'):
+            partner['image'] = partner['image'].split(',')[1]
+        partner_id = partner.pop('id', False)
+        if partner_id:  # Modifying existing partner
+            self.browse(partner_id).write(partner)
+        else:
+            partner['lang'] = self.env.user.lang
+            res = self.create(partner)
+            partner_id = res.id
+        return partner_id
 
     def get_related_parents(self, partners_dict, partner_ids, field_name):
         records = self.env['res.partner'].search_read([('id', 'in', partner_ids), (field_name, '!=', False)], fields=[field_name])

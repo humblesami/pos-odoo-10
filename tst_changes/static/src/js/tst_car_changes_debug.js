@@ -946,6 +946,23 @@ odoo.define('pos_product_creation', function (require) {
                     self.pos.tables_by_id[currTableId].currentCustomer['name'] = this.new_client.name;
                 }
             }
+        },
+        saved_client_details: function(partner_id){
+            var self = this;
+            return this.reload_partners().then(function(){
+                var partner = self.pos.db.get_partner_by_id(partner_id);
+                if (partner) {
+                    self.new_client = partner;
+                    self.toggle_save_button();
+                    self.display_client_details('show',partner);
+                } else {
+                    // should never happen, because create_from_ui must return the id of the partner it
+                    // has created, and reload_partner() must have loaded the newly created partner.
+                    self.display_client_details('hide');
+                }
+            }).always(function(){
+                $(".client-details-contents").on('click','.button.save',self.save_client_details);
+            });
         }
     });
     screens.ReceiptScreenWidget.include({
@@ -1300,7 +1317,6 @@ odoo.define('pos_product_creation', function (require) {
                 }
                 $(".clear-search-result").show();
                 var search_str = val_now;
-                //console.log(search_str, 5454);
                 var newThisIs = this;
                 var results = Array();
                 for (var i in self.pos.usr_cars) {
