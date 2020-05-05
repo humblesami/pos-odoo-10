@@ -1444,4 +1444,7 @@ odoo.define('pos_product_creation', function(require) {
             }
         }
     });
+    return {
+        carCustomerSearchWidget: carCustomerSearchWidget
+    }
 });
