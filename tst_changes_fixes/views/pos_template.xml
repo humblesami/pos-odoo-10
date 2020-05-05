@@ -1,0 +1,10 @@
+<odoo>
+    <data>
+        <template id="assets" inherit_id="point_of_sale.assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/tst_changes_fixes/static/src/js/pos_cars.js"></script>
+                <link rel="stylesheet" href="/tst_changes_fixes/static/src/css/pos_cars.css" />
+            </xpath>
+        </template>
+    </data>
+</odoo>

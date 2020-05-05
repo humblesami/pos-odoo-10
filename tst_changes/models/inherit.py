@@ -1,120 +1,24 @@
-from functools import partial
-from odoo import models, fields, api
+from odoo import models, fields, exceptions, api, tools, _
 from odoo.exceptions import UserError
-
+from functools import partial
+import pytz
+from datetime import timedelta
 
 class ResPartnerTSTInherit(models.Model):
     _inherit = 'res.partner'
 
-    cars_id = fields.One2many("user.cars", 'partner_id')
-
-    @api.model
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-
-        res = super(ResPartnerTSTInherit, self).search(domain, offset, limit, order, count=False)
-        last_field = fields[len(fields) - 1]
-        if len(res) < 200 or last_field != 'tst_pos_data':
-            res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
-            return res
-
-        cr = self._cr
-        query = """
-                SELECT distinct rp.name as name,rp.id,rp.mobile,rp.barcode,
-                rp.street,rp.zip,rp.city,rp.country_id, rp.state_id,
-                rp.email, rp.vat, rp.write_date,
-                rp.mobile as phone                
-                from public.res_partner rp
-                join
-                (
-                    SELECT distinct partner_id FROM public.user_cars                    
-                ) as cst on rp.id=cst.partner_id
-                where customer=true
-        """
-        cr.execute(query)
-        partners = cr.dictfetchall()
-
-        partner_ids = []
-        partners_dict = {}
-        for customer in partners:
-            for key in customer:
-                if not customer.get(key):
-                    customer[key] = False
-            customer['cars_id'] = []
-            customer['write_date'] = customer['write_date'][0:19]
-            partner_ids.append(customer['id'])
-            partners_dict[customer['id']] = customer
-
-        self.get_related_parents(partners_dict, partner_ids, 'country_id')
-        self.get_related_parents(partners_dict, partner_ids, 'state_id')
-        self.get_related_parents(partners_dict, partner_ids, 'property_account_position_id')
-        self.get_related_children(cr, partners_dict, 'cars_id')
-
-        res = partners
-        return res
-
-    @api.model
-    def create_from_ui(self, partner):
-        """ create or modify a partner from the point of sale ui.
-            partner contains the partner's fields. """
-        # image is a dataurl, get the data after the comma
-        if partner.get('image'):
-            partner['image'] = partner['image'].split(',')[1]
-        partner_id = partner.pop('id', False)
-        if partner_id:  # Modifying existing partner
-            self.browse(partner_id).write(partner)
-        else:
-            partner['lang'] = self.env.user.lang
-            res = self.create(partner)
-            partner_id = res.id
-        return partner_id
-
-    def get_related_parents(self, partners_dict, partner_ids, field_name):
-        records = self.env['res.partner'].search_read([('id', 'in', partner_ids), (field_name, '!=', False)], fields=[field_name])
-        for ob in records:
-            partners_dict[ob['id']][field_name] = [ob[field_name][0], ob[field_name][1]]
-        return partners_dict
-
-    def get_related_children(self, cr, partners_dict, field_name):
-        query = "select id, partner_id from user_cars"
-        cr.execute(query)
-        res = cr.dictfetchall()
-        for obj in res:
-            partners_dict[obj['partner_id']]['cars_id'].append(obj['id'])
-        return True
-
-    @api.constrains('mobile','phone')
-    def _check_number_format(self):
-        if self.mobile:
-            if self.search_count([('mobile','=',self.mobile)]) > 1:
-                raise ValueError('Mobile No Already Exists')
-
-        if self.phone:
-            if len(str(self.phone)) != 11:
-                raise ValueError("Phone No Must not be greater than 11 digits.")
-            if self.search_count([('phone','=',self.phone)]) > 1:
-                raise ValueError('Phone No Already Exists')
-
-    def write(self, vals):
-        res = super(ResPartnerTSTInherit, self).write(vals)
-        return res
-
+    cars_id = fields.One2many("user.cars", 'partner_id', "Customer Cars")
 
 class TSTInheritPosOrderLine(models.Model):
     _inherit = "pos.order.line"
-    discount_fixed = fields.Float(default=0)
-    discount_total = fields.Float(default=0)
 
     def get_original_discount_price(self):
         if self.price_unit and self.discount:
             getit = (self.price_unit / 100) * self.discount
             return getit
 
-
 class TSTInheritPosOrder(models.Model):
     _inherit = "pos.order"
-
-    discount_fixed = fields.Float(default=0)
-    discount_total = fields.Float(default=0)
 
     employees_ids = fields.One2many("tst.table.employees","pos_order_id", string="Working Employees")
     car_id = fields.Many2one("user.cars", string="Selected Car")
@@ -140,6 +44,24 @@ class TSTInheritPosOrder(models.Model):
         getCreate = super(TSTInheritPosOrder, self).create(values)
         if values['reading_id']:
             self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
+        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
+        if sms_template:
+            body = sms_template.sms_html
+
+            customer = self.env['res.partner'].browse(values['partner_id'])
+            if customer:
+                if customer.phone:
+                    body = body.replace('{userName}',customer.name)
+                    phoneNum = '+92' + str(customer.phone)[1:]
+                    sms_id = self.env['sms.compose'].create({
+                                    'template_id': sms_template.id,
+                                    'body_text': body,
+                                    'sms_to_lead': phoneNum
+                                    })
+
+                    if sms_id:
+                        self.env['sms.compose'].browse(sms_id.id).send_sms_action_pos(getCreate.ids)
+
         return getCreate
 
     @api.multi
@@ -197,12 +119,25 @@ class TSTInheritPosOrder(models.Model):
             'reading_id': False
         }
 
-
 class TSTPOSConfigInherit(models.Model):
     _inherit = "pos.config"
 
     reciept_logo = fields.Binary('Logo')
 
+class TSTPOSResPartner(models.Model):
+    _inherit = "res.partner"
+
+    @api.constrains('mobile','phone')
+    def _check_number_format(self):
+        if self.mobile:
+            if self.search_count([('mobile','=',self.mobile)]) > 1:
+                raise ValueError('Mobile No Already Exists')
+
+        if self.phone:
+            if len(str(self.phone)) != 11:
+                raise ValueError("Phone No Must not be greater than 11 digits.")
+            if self.search_count([('phone','=',self.phone)]) > 1:
+                raise ValueError('Phone No Already Exists')
 
 class DNSSurveyProductTemplateInherit(models.Model):
     _inherit = "product.template"

@@ -3,39 +3,9 @@ from odoo.exceptions import UserError
 from datetime import datetime
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
-
 class TSTMyCars(models.Model):
     _name = 'user.cars'
     _sql_constraints = [('vehicle_no_unique', 'unique (vehicle_no)', 'Vehicle Number already exists!')]
-
-    @api.model
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        res = super(TSTMyCars, self).search(domain, offset, limit, order, count=False)
-        last_field = fields[len(fields) - 1]
-        if len(res) < 200 or last_field != 'tst_pos_data':
-            res = super(TSTMyCars, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
-            return res
-
-        cr = self._cr
-        query = """
-        SELECT user_cars.id,user_cars.vehicle_no,user_cars.car_model, res_partner.name as customer_name,
-        res_partner.id as customer_id, user_cars_brands.car_brand 
-        FROM public.user_cars 
-        inner join public.user_cars_brands on user_cars.car_brand = user_cars_brands.id
-        inner join
-        (
-            select id, name from public.res_partner where customer=true            
-        ) res_partner
-        on user_cars.partner_id = res_partner.id        
-        """
-
-        cr.execute(query)
-        cars = cr.dictfetchall()
-        for ob in cars:
-            ob['car_brand'] = [0, ob['car_brand']]
-            ob['partner_id'] = [ob['customer_id'], ob['customer_name']]
-
-        return cars
 
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=100):
@@ -138,13 +108,11 @@ class TSTMyCars(models.Model):
     pos_order = fields.One2many("pos.order", 'car_id', string="Car Orders")
     transfer_history = fields.One2many("user.cars.transfer.history", 'car_id', string="Car Transfer History")
 
-
 class TSTCarTransferHistory(models.Model):
     _name = 'user.cars.transfer.history'
 
     partner_id = fields.Many2one('res.partner', 'Previous Customer Name')
     car_id = fields.Many2one('user.cars', 'Car ID')
-
 
 class TSTUserCarsAddBrands(models.Model):
     _name = 'user.cars.brands'
@@ -160,10 +128,8 @@ class TSTUserCarsAddBrands(models.Model):
 
     car_brand = fields.Char("Brand")
 
-
 class TSTCarReadings(models.Model):
     _name = "user.cars.readings"
-    _rec_name = 'car_id'
 
     per_day_reading = fields.Float("Car Reading Per Days")
     current_readaing = fields.Float("Current Reading")
@@ -173,19 +139,16 @@ class TSTCarReadings(models.Model):
     car_id = fields.Many2one("user.cars", "Car ID")
     pos_order_id = fields.Many2one("pos.order", string="POS Order")
 
-
 class TSTTableEmployees(models.Model):
     _name = "tst.table.employees"
 
     emp_id = fields.Many2one("hr.employee", string="Employee Name")
     pos_order_id = fields.Many2one("pos.order", string="POS Order ID")
 
-
 class TSTHrEmployeeInherit(models.Model):
     _inherit = "hr.employee"
 
     is_dock_user = fields.Boolean("Is Dock Worker")
-
 
 class TSTCaMaintainenceHistoy(models.Model):
     _name = "tst.car.maintain.history"
@@ -197,7 +160,6 @@ class TSTCaMaintainenceHistoy(models.Model):
 
     car_id = fields.Many2one("user.cars", string="Select Car")
     show_price_flag = fields.Selection([('show_prices','Show Prices'),('hide_prices','Hide Prices')], string="Show Prices", default='show_prices')
-
 
 class ReportSaleDetails(models.AbstractModel):
     _name = 'report.tst_changes.tst_report_saledetails'

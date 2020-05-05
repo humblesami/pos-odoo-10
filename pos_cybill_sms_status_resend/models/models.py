@@ -128,9 +128,13 @@ class PosOrder(models.Model):
 
             customer = self.env['res.partner'].browse(vals['partner_id'])
             if customer:
-                if customer.phone:
-                    body = body.replace('{userName}', customer.name)
-                    phoneNum = '+92' + str(customer.phone)[1:]
+                customer_phone = customer.phone or customer.mobile
+                if customer_phone:
+                    if not body:
+                        body = 'Order created'
+                    if '{userName}' in body:
+                        body = body.replace('{userName}', customer.name)
+                    phoneNum = '+92' + str(customer_phone)[1:]
                     sms_id = self.env['sms.compose'].create({
                         'template_id': sms_template.id,
                         'body_text': body,
@@ -138,7 +142,8 @@ class PosOrder(models.Model):
                     })
 
                     if sms_id:
-                        self.env['sms.compose'].browse(sms_id.id).send_sms_action_pos(res.ids)
+                        sms = self.env['sms.compose'].browse(sms_id.id)
+                        sms.send_sms_action_pos(res.ids)
         return res
 
 
