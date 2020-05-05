@@ -1,0 +1,30 @@
+<odoo>
+    <data>
+        <record id="sms_track_form_resend" model="ir.ui.view">
+            <field name="name">smstrack.form resend</field>
+            <field name="model">sms_track</field>
+            <field name="inherit_id" ref="sms_track_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="field[@name='']"
+                <xpath expr="field[@name='message_id']" position="after">
+                    <field name="success"/>
+                    <button string="Resend" type="object" name="resend_message"
+                    attrs="{'invisible':[('success','=',True)]}"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sms_track_tree_resend" model="ir.ui.view">
+            <field name="name">smstrack.list resend</field>
+            <field name="model">sms_track</field>
+            <field name="inherit_id" ref="sms_track_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="field[@name='mobile_no']" position="after">
+                    <field name="success"/>
+                    <button string="Resend" type="object" name="resend_message"
+                    attrs="{'invisible':[('success','=',True)]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

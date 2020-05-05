@@ -140,25 +140,6 @@ class TSTInheritPosOrder(models.Model):
         getCreate = super(TSTInheritPosOrder, self).create(values)
         if values['reading_id']:
             self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
-        sms_template = None
-        #sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
-        if sms_template:
-            body = sms_template.sms_html
-
-            customer = self.env['res.partner'].browse(values['partner_id'])
-            if customer:
-                if customer.phone:
-                    body = body.replace('{userName}',customer.name)
-                    phoneNum = '+92' + str(customer.phone)[1:]
-                    sms_id = self.env['sms.compose'].create({
-                                    'template_id': sms_template.id,
-                                    'body_text': body,
-                                    'sms_to_lead': phoneNum
-                                    })
-
-                    if sms_id:
-                        self.env['sms.compose'].browse(sms_id.id).send_sms_action_pos(getCreate.ids)
-
         return getCreate
 
     @api.multi
