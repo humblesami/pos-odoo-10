@@ -967,7 +967,11 @@ odoo.define('pos_product_creation', function(require) {
         render_receipt: function() {
             var order = this.pos.get_order();
             var rec_employees = [];
-
+            var currentCar = this.pos.tables_by_id[this.pos.table.id].currentCar;
+            if (!currentCar) {
+                alert('No car selected');
+                return;
+            }
             if (this.pos.tables_by_id[this.pos.table.id].selected_employees) {
                 $.each(this.pos.tables_by_id[this.pos.table.id].selected_employees, function(index, vals) {
                     $.each(self.posmodel.employees, function(ind, val) {
@@ -979,7 +983,6 @@ odoo.define('pos_product_creation', function(require) {
             }
             this.pos.tables_by_id[this.pos.table.id].selected_employees_backup = [];
             this.pos.db.store_tst_data(this.pos.tables_by_id);
-            var currentCar = this.pos.tables_by_id[this.pos.table.id].currentCar;
             var currentCustomer = this.pos.tables_by_id[this.pos.table.id].currentCustomer;
             var selected_employees = this.pos.tables_by_id[this.pos.table.id].selected_employees;
 
