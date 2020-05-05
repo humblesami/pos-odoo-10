@@ -231,7 +231,7 @@ odoo.define('pos_product_creation', function(require) {
             this.usr_cars = options.usr_cars;
             this.car_brands = options.car_brands;
             var curr = -1;
-            if (this.pos.table.currentCar) {
+            if (this.pos.table.currentCar && this.pos.table.currentCar.id) {
                 curr = parseInt(this.pos.table.currentCar['id']);
             }
             this.currentCar = curr;
