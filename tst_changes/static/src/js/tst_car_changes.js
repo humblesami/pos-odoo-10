@@ -965,13 +965,13 @@ odoo.define('pos_product_creation', function(require) {
     });
     screens.ReceiptScreenWidget.include({
         render_receipt: function() {
-            var order = this.pos.get_order();
-            var rec_employees = [];
             var currentCar = this.pos.tables_by_id[this.pos.table.id].currentCar;
             if (!currentCar) {
                 alert('No car selected');
                 return;
             }
+            var order = this.pos.get_order();
+            var rec_employees = [];
             if (this.pos.tables_by_id[this.pos.table.id].selected_employees) {
                 $.each(this.pos.tables_by_id[this.pos.table.id].selected_employees, function(index, vals) {
                     $.each(self.posmodel.employees, function(ind, val) {
