@@ -355,7 +355,7 @@
                             <small style="font-size: 12px;">Enter your query and press enter</small>
                             <a href="javascript:;" class="clear-search-result" style="display:none">Clear Search Result</a>
                         </div>
-                        <input type="text" placeholder="Search" class="input-seaarch-car" />
+                        <input type="text" placeholder="Search" class="input-search-car" />
                         <input type="hidden" class="input-set-car" />
                         <a href="javascript:;" last-show="0" class="show-last-twenty cars-paging">&lt; Show Last 20</a>
                         <a href="javascript:;" last-show="20" class="show-next-twenty cars-paging">Show Next 20 &gt;</a>

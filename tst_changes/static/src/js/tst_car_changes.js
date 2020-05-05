@@ -1137,7 +1137,7 @@ odoo.define('pos_product_creation', function(require) {
             'click .show-next-twenty': 'next_paging',
             'click .show-last-twenty': 'last_paging',
             'click .clear-search-result': 'clear_search_string',
-            'keyup .input-seaarch-car': 'search_partner_table'
+            'keyup .input-search-car': 'search_partner_table'
         },
         show: function(options) {
             options = options || {};
@@ -1153,7 +1153,7 @@ odoo.define('pos_product_creation', function(require) {
             this.isSearch = false;
             this.searchResult = 0;
             this.renderElement();
-            this.$('.input-seaarch-car').focus();
+            this.$('.input-search-car').focus();
         },
         close: function() {
             if (this.pos.barcode_reader) {
@@ -1335,7 +1335,7 @@ odoo.define('pos_product_creation', function(require) {
             var self = this;
             this.isSearch = false;
             $(".clear-search-result").hide();
-            $(".input-seaarch-car").val('');
+            $(".input-search-car").val('');
             var car_list_widget = this.renderCarsTableList('', '');
             if (car_list_widget != 'n') {
                 this.$('.client-cars-list tbody').html('');
