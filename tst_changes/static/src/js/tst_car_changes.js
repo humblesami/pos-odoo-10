@@ -1180,15 +1180,28 @@ odoo.define('pos_product_creation', function(require) {
                 this.pos.barcode_reader.restore_callbacks();
             }
         },
+        prev_val: '',
         search_partner_table: function(e) {
             var self = this;
-            if (e.keyCode == 13) {
-                if ($(e.currentTarget).val() == '') {
-                    alert("Search String not Provided");
+            if (e.keyCode == 27) {
+                let cancel_button = $('.car-list-creation .footer .button.cancel:first');
+                if (cancel_button.length) {
+                    cancel_button.click();
+                }
+            }
+            let val_now = $(e.currentTarget).val().toLowerCase();
+            if (val_now == this.prev_val && e.keyCode != 13) {
+                return;
+            }
+            this.current_page = 1;
+            this.prev_val = val_now;
+            if (e.keyCode) {
+                if (val_now == '') {
+                    $(".clear-search-result").click();
                     return;
                 }
                 $(".clear-search-result").show();
-                var search_str = $(e.currentTarget).val().toLowerCase();
+                var search_str = val_now;
                 var newThisIs = this;
                 var results = Array();
                 for (var i in self.pos.usr_cars) {
