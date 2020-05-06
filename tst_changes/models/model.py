@@ -132,7 +132,7 @@ class TSTCarReadings(models.Model):
     _name = "user.cars.readings"
 
     per_day_reading = fields.Float("Car Reading Per Days")
-    current_readaing = fields.Float("Current Reading")
+    current_reading = fields.Float("Current Reading")
     next_oil_change_km = fields.Float("Next Oil Change KM")
     next_oil_change_date = fields.Date("Next Oil Change Date")
     car_per_day_read_expect = fields.Integer("Expected Car Reading After KM")

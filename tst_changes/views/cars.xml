@@ -31,7 +31,7 @@
                                 <field name="per_day_reading" nolabel="1">
                                     <tree editable="bottom">
                                         <field name="per_day_reading" />
-                                        <field name="current_readaing" />
+                                        <field name="current_reading" />
                                         <field name="next_oil_change_km" />
                                         <field name="next_oil_change_date" />
                                         <field name="car_per_day_read_expect" />
@@ -118,7 +118,7 @@
                         <group>
                             <group>
                                 <field name="per_day_reading" />
-                                <field name="current_readaing" />
+                                <field name="current_reading" />
                                 <field name="car_per_day_read_expect" />
                             </group>
                             <group>

@@ -23,7 +23,7 @@ class TSTInheritPosOrder(models.Model):
     employees_ids = fields.One2many("tst.table.employees","pos_order_id", string="Working Employees")
     car_id = fields.Many2one("user.cars", string="Selected Car")
     per_day_reading = fields.Float("Car Reading Per Days")
-    current_readaing = fields.Float("Current Reading")
+    current_reading = fields.Float("Current Reading")
     next_oil_change_km = fields.Float("Next Oil Change KM")
     next_oil_change_date = fields.Date("Next Oil Change Date")
     car_per_day_read_expect = fields.Integer("Expected Car Reading After KM")
@@ -92,7 +92,7 @@ class TSTInheritPosOrder(models.Model):
 
             values = {}
             values['per_day_reading'] = ui_order['car_reading']
-            values['current_readaing'] = ui_order['car_current_reading']
+            values['current_reading'] = ui_order['car_current_reading']
             values['next_oil_change_km'] = ui_order['next_oil_change']
             values['next_oil_change_date'] = ui_order['next_oil_change_date']
             values['car_per_day_read_expect'] = ui_order['car_per_day_read_expect'] if 'car_per_day_read_expect' in ui_order else ''
@@ -113,7 +113,7 @@ class TSTInheritPosOrder(models.Model):
             'employees_ids': terms,
             'car_id': ui_order['selected_car'] if 'selected_car' in ui_order else '',
             'per_day_reading': ui_order['car_reading'] if 'car_reading' in ui_order else '',
-            'current_readaing': ui_order['car_current_reading'] if 'car_current_reading' in ui_order else '',
+            'current_reading': ui_order['car_current_reading'] if 'car_current_reading' in ui_order else '',
             'next_oil_change_km': ui_order['next_oil_change'] if 'next_oil_change' in ui_order else '',
             'next_oil_change_date': ui_order['next_oil_change_date'] if 'next_oil_change_date' in ui_order else '',
             'reading_id': False

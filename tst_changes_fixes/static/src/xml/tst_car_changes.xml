@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" inherit_id="tst_changes.template">
+
+    <t t-name="TstCarReadingWidget">
+        <div class="tst-car-readings-section">
+            <t t-set="currCar" t-value="widget.selected_car"/>
+            <t t-if="currCar">
+                <div class="client-detail">
+                    <div class="button view-car-readings">View Readings</div>
+                </div>
+
+                <div class="client-detail">
+                    <span class="label">Selected Car</span>
+                    <input class="detail customer-car-reading-per-day" name="select-car-model" type="hidden" t-att-value="currCar['id']" />
+                    <div class="customer-car-reading-per-day-display">
+                        <t t-esc="currCar.car_brand[1]" /> | <t t-esc="currCar.vehicle_no" />
+                    </div>
+                </div>
+
+                <t t-set="carPerDayRead" t-value="0" />
+                <t t-set="carPerDayReadExpected" t-value="0" />
+                <t t-if="widget.pos.changed.selectedClient">
+                    <t t-set="carPerDayRead" t-value="currCar.car_readaing_per_day" />
+                    <t t-set="carPerDayReadExpected" t-value="currCar.oil_change_after_readaing" />
+                </t>
+                <div class="client-detail">
+                    <span class="label">Car Reading (Per Day)</span>
+                    <input type="number" class="detail customer-oil-change customer-car-reading-per-day-input"
+                           name="car-reading-per-day" placeholder="Car Reading Per Day" t-att-value="carPerDayRead" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Expected Car Reading After KM</span>
+                    <input type="number" class="detail customer-oil-change customer-car-reading-expected"
+                           name="car-reading-per-expected" placeholder="Expected Car Reading After KM"  t-att-value="carPerDayReadExpected" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Current Reading</span>
+                    <input type="number" class="detail customer-oil-change customer-current-reading" name="car-current-reading" placeholder="Car Current Reading" value="" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Next Service</span>
+                    <input type="number" class="detail customer-oil-change customer-next-oil-change" name="car-next-oil-change" placeholder="Next Service" readonly="1" value="" />
+                </div>
+                <div class="client-detail">
+                    <span class="label">Next Service Date</span>
+                    <input type="text" class="detail customer-oil-change customer-next-oil-date" name="car-next-oil-date" placeholder="Next Service Date" readonly="1" value="" />
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-extend="SelectAndSearchCar">
+        <t t-jquer="div.footer" position="replace">
+            <div class="footer">
+                <t t-if="widget.customerSelected=='n'">
+                    <t t-if="widget.search_count">
+                        <div class="pages pt-17">
+                            <span class="static">Page:</span>
+                            <span class="current_page"><t t-esc="widget.current_page"/></span>
+                            <span class="static">out of</span>
+                            <span class="page_count"><t t-esc="widget.page_count"/></span>
+                        </div>
+                    </t>
+                    <div class="counts pt-17">
+                        <span class="static">Search Results:</span>
+                        <span class="search_count"><t t-esc="widget.search_count"/></span>
+                        <span class="static">out of</span>
+                        <span class="total_count"><t t-esc="widget.total_count"/></span>
+                    </div>
+                </t>
+                <div class="button cancel">
+                    Cancel
+                </div>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="CarShowReadingsWidget">
+        <div class="modal-dialog">
+            <div class="popup car-show-readings car-list-creation">
+                <div class="title">Car Readings</div>
+                <div class="body">
+                    <div class="product-creation-form">
+                        Car Brand: <t t-esc="widget.current_car.car_brand[1]" /><br />
+                        Vehicle No: <t t-esc="widget.current_car.vehicle_no" />
+                    </div>
+                    <div class="touch-scrollable scrollable-y" style="height: 480px">
+                        <table class="client-cars-list">
+                            <thead>
+                                <tr>
+                                    <th>Per Day Reading</th>
+                                    <th>Reading</th>
+                                    <th>Reading Date</th>
+                                    <th>Next Service KM</th>
+                                    <th>Next Service Date</th>
+                                    <th>Next Service Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="0" />
+                                <tr t-foreach="widget.current_car.car_readings" t-as="reading">
+
+                                    <td><span t-esc="reading.per_day_reading" /></td>
+                                    <td><span t-esc="reading.current_reading" /></td>
+                                    <td><span t-esc="reading.create_date" /></td>
+                                    <td><span t-esc="reading.next_oil_change_km" /></td>
+                                    <td><span t-esc="reading.next_oil_change_date" /></td>
+                                    <td>
+                                        <t t-if="reading.pos_order_id">
+                                        <div class="button view-order" style="background-color:#6EC89B;color:#fff;font-weight:bold" t-att-order-id="reading.pos_order_id[0]">
+                                            View Order
+                                        </div>
+                                        </t>
+                                    </td>
+                                    <t t-set="counter" t-value="counter+1" />
+
+                                </tr>
+                                <t t-if="counter==0">
+                                <tr><td colspan="5" class="text-center"><strong>Readings Not Found Against that Car</strong></td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="footer">
+                    <div class="button cancel">
+                        Cancel
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

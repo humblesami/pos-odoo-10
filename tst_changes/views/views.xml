@@ -42,7 +42,7 @@
                             <group>
                                 <field name="car_id" />
                                 <field name="per_day_reading" />
-                                <field name="current_readaing" />
+                                <field name="current_reading" />
                             </group>
                             <group>
                                 <field name="next_oil_change_km" />

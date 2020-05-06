@@ -65,7 +65,7 @@
                         </tr>
                         <tr>
                             <th style="border: 1px solid black;">Car Current Reading: </th>
-                            <td style="border: 1px solid black;text-align:center"><t t-esc="o.current_readaing" /></td>
+                            <td style="border: 1px solid black;text-align:center"><t t-esc="o.current_reading" /></td>
                         </tr>
                         <tr>
                             <th style="border: 1px solid black;">Next Service: </th>

@@ -192,7 +192,7 @@
                                 <tr t-foreach="widget.car_readings" t-as="reading">
                                     <t t-if="reading.car_id[0]==widget.car_id">
                                     <td><span t-esc="reading.per_day_reading" /></td>
-                                    <td><span t-esc="reading.current_readaing" /></td>
+                                    <td><span t-esc="reading.current_reading" /></td>
                                     <td><span t-esc="reading.create_date" /></td>
                                     <td><span t-esc="reading.next_oil_change_km" /></td>
                                     <td><span t-esc="reading.next_oil_change_date" /></td>
