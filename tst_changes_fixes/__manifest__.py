@@ -7,7 +7,7 @@
     'author': "Visiomate sami",
 
     # any module necessary for this one to work correctly
-    'depends': ['tst_changes'],
+    'depends': ['pos_fast_load'],
 
     # always loaded
     'data': [
