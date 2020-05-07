@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from odoo import models, fields, api
 
 
@@ -6,13 +8,14 @@ class ResPartnerTSTInherit(models.Model):
 
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-
         res = super(ResPartnerTSTInherit, self).search(domain, offset, limit, order, count=False)
         last_field = fields[len(fields) - 1]
         if len(res) < 200 or last_field != 'loading_data_offline':
+            print ('\n\n\nLoading '+str(len(res))+' customer(s) normally ' + str(datetime.now()))
             res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
+            print ('Loaded customer normally ' + str(datetime.now()) + '\n\n\n')
             return res
-
+        print ('\n\n\nLoading customer fast ' + str(datetime.now()))
         cr = self._cr
         query = """
                 SELECT distinct rp.name as name,rp.id,rp.mobile,rp.barcode,
@@ -28,7 +31,7 @@ class ResPartnerTSTInherit(models.Model):
         """
         cr.execute(query)
         partners = cr.dictfetchall()
-
+        print ('Loaded customer fast 1 ' + str(datetime.now()) + '\n')
         partner_ids = []
         partners_dict = {}
         for customer in partners:
@@ -46,6 +49,7 @@ class ResPartnerTSTInherit(models.Model):
         self.get_related_children(cr, partners_dict, 'cars_id')
 
         res = partners
+        print ('Loaded customer fast 2 ' + str(datetime.now()) + '\n\n\n')
         return res
 
     def get_related_parents(self, partners_dict, partner_ids, field_name):
@@ -61,3 +65,19 @@ class ResPartnerTSTInherit(models.Model):
         for obj in res:
             partners_dict[obj['partner_id']][field_name].append(obj['id'])
         return True
+
+    def write(self, vals):
+        phone_number = False
+        mobile_number = False
+        if vals.get('phone'):
+            phone_number = vals.get('phone')
+        if vals.get('mobile'):
+            mobile_number = vals.get('mobile')
+        if phone_number and not mobile_number:
+            if not self.mobile:
+                vals['mobile'] = phone_number
+        if mobile_number and not phone_number:
+            if not self.phone:
+                vals['phone'] = mobile_number
+        res = super(ResPartnerTSTInherit, self).write(vals)
+        return res

@@ -6,7 +6,7 @@
                 <t t-set="currCar" t-value="selected_car"/>
                 <t t-if="currCar">
                     <div class="client-detail">
-                        <div class="button view-car-readings">View Readings</div>
+                        <div class="button view-car-readings">View Readings 1</div>
                     </div>
 
                     <div class="client-detail">
@@ -54,14 +54,12 @@
         <t t-jquery="div.footer:first" t-operation="replace">
             <div class="footer">
                 <t t-if="widget.customerSelected=='n'">
-                    <t>
-                        <div class="pages pt-17">
-                            <span class="static">Page:</span>
-                            <span class="current_page"></span>
-                            <span class="static"> out of </span>
-                            <span class="page_count"></span>
-                        </div>
-                    </t>
+                    <div class="pages pt-17">
+                        <span class="static">Page:</span>
+                        <span class="current_page"></span>
+                        <span class="static"> out of </span>
+                        <span class="page_count"></span>
+                    </div>
                     <div class="counts pt-17">
                         <span class="static">Search Results:</span>
                         <span class="search_count"></span>
@@ -96,7 +94,6 @@
                                             <th>Reading</th>
                                             <th>Reading Date</th>
                                             <th>Next Service KM</th>
-                                            <th>Next Service Date</th>
                                             <th>Next Service Date</th>
                                         </tr>
                                     </thead>

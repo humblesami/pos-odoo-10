@@ -41,15 +41,6 @@ class TSTInheritPosOrder(models.Model):
             values['name'] = self.env['ir.sequence'].next_by_code('pos.order')
 
         getCreate = super(TSTInheritPosOrder, self).create(values)
-        reading_vals = {
-            'next_oil_change_date': values.get('next_oil_change_date'),
-            'next_oil_change_km': values.get('next_oil_km'),
-            'current_reading': values.get('current_reading'),
-            'per_day_reading':values.get('per_day_reading'),
-            'car_per_day_read_expect':values.get('car_per_day_read_expect'),
-            'car_id': values.get('car_id'),
-            'pos_order_id': getCreate.id,
-        }
         reading = self.env['user.cars.readings'].browse(values['reading_id'])
         reading.pos_order_id = getCreate.id
         return getCreate

@@ -19,15 +19,15 @@ odoo.define('pos_partner_cars',function(require) {
             this._super(parent, args);
         },
         show: function(options){
-            this.selected_car = options.current_car || options.selected_car;
+            this.selected_car = options.selected_car;
             this.vehicle_no = this.selected_car.vehicle_no;
-            console.log(this.current_car, 444);
             this._super(options);
         }
     });
 
     carCustomerSearchWidget.include({
         init: function(parent, args) {
+            let self= this;
             this._super(parent, args);
             this.current_page = 1;
             this.page_count = 0;
@@ -40,6 +40,52 @@ odoo.define('pos_partner_cars',function(require) {
                 setTimeout(function() {
                     ev.target.select();
                 }, 500);
+            });
+            $('body').on('click', '.set-default-car.button', function() {
+                var car_id = $(this).attr("car-id");
+                var car_vehicle = $(this).attr("car-vehicle-no");
+                var car_partner_id = $(this).attr("car-partner-id");
+                var car_index = $(this).attr("car-index-id");
+                if (self.pos.table) {
+                    var getId = self.pos.table.id;
+                    if (!self.pos.table.currentCar) {
+                        self.pos.table.currentCar = [];
+                    }
+                    self.pos.table.currentCar['id'] = car_id;
+                    self.pos.table.currentCar['vehicle_no'] = car_vehicle;
+                    self.pos.table.currentCar['car_index_id'] = car_index;
+                    if (!self.pos.tables_by_id[getId].currentCar) {
+                        self.pos.tables_by_id[getId].currentCar = [];
+                    }
+                    self.pos.tables_by_id[getId].currentCar['id'] = car_id;
+                    self.pos.tables_by_id[getId].currentCar['vehicle_no'] = car_vehicle;
+                    self.pos.tables_by_id[getId].currentCar['car_index_id'] = car_index;
+
+                    $('.searchbox.default-partner-car').text(car_vehicle);
+                    var setPartner = -1;
+                    $.each(self.pos.partners, function(index, vals) {
+                        if (vals.id == car_partner_id) {
+                            setPartner = vals;
+                            return false;
+                        }
+                    });
+
+                    var setPartner = self.pos.db.get_partner_by_id(car_partner_id);
+                    if (!self.pos.tables_by_id[getId].currentCustomer) {
+                        self.pos.tables_by_id[getId].currentCustomer = [];
+                    }
+                    self.pos.tables_by_id[getId].currentCustomer['id'] = setPartner.id;
+                    self.pos.tables_by_id[getId].currentCustomer['name'] = setPartner.name;
+
+                    var order = self.pos.get_order();
+                    order.set_client(setPartner);
+                    self.gui.close_popup();
+
+                    if (self.customerSelected != 'n') {
+                        self.gui.back()
+                    }
+                }
+                self.pos.db.store_tst_data(self.pos.tables_by_id);
             });
         },
         set_counts: function(set_from, search_count){
@@ -72,9 +118,10 @@ odoo.define('pos_partner_cars',function(require) {
             setTimeout(function() {
                 if (options.car_id) {
                     search_input.val(options.current_car_id.vehicle_no);
-                    search_input.focus();
                 }
-            }, 1000);
+                search_input.focus();
+                self.search_partner_table({keyCode: 13}, true);
+            }, 20);
             self.set_counts('show');
         },
         last_paging: function(e) {
@@ -135,58 +182,13 @@ odoo.define('pos_partner_cars',function(require) {
 
             //console.log(arr_length, this.pagingLastShowCar, this.pagingNextShowCar);
             var slicedArray = arr.slice(this.pagingLastShowCar, this.pagingNextShowCar);
-            var methods = $(QWeb.render('TableCarsListWidget', {
+            var widget_options = {
                 widget: this,
                 slicedArr: slicedArray,
                 s_type: s_type
-            }));
-
-            methods.on('click', '.set-default-car.button', function() {
-                var car_id = $(this).attr("car-id");
-                var car_vehicle = $(this).attr("car-vehicle-no");
-                var car_partner_id = $(this).attr("car-partner-id");
-                var car_index = $(this).attr("car-index-id");
-                if (self.pos.table) {
-                    var getId = self.pos.table.id;
-                    if (!self.pos.table.currentCar) {
-                        self.pos.table.currentCar = [];
-                    }
-                    self.pos.table.currentCar['id'] = car_id;
-                    self.pos.table.currentCar['vehicle_no'] = car_vehicle;
-                    self.pos.table.currentCar['car_index_id'] = car_index;
-                    if (!self.pos.tables_by_id[getId].currentCar) {
-                        self.pos.tables_by_id[getId].currentCar = [];
-                    }
-                    self.pos.tables_by_id[getId].currentCar['id'] = car_id;
-                    self.pos.tables_by_id[getId].currentCar['vehicle_no'] = car_vehicle;
-                    self.pos.tables_by_id[getId].currentCar['car_index_id'] = car_index;
-
-                    $('.searchbox.default-partner-car').text(car_vehicle);
-                    var setPartner = -1;
-                    $.each(self.pos.partners, function(index, vals) {
-                        if (vals.id == car_partner_id) {
-                            setPartner = vals;
-                            return false;
-                        }
-                    });
-
-                    var setPartner = self.pos.db.get_partner_by_id(car_partner_id);
-                    if (!self.pos.tables_by_id[getId].currentCustomer) {
-                        self.pos.tables_by_id[getId].currentCustomer = [];
-                    }
-                    self.pos.tables_by_id[getId].currentCustomer['id'] = setPartner.id;
-                    self.pos.tables_by_id[getId].currentCustomer['name'] = setPartner.name;
-
-                    var order = self.pos.get_order();
-                    order.set_client(setPartner);
-                    self.gui.close_popup();
-
-                    if (self.customerSelected != 'n') {
-                        self.gui.back()
-                    }
-                }
-                self.pos.db.store_tst_data(self.pos.tables_by_id);
-            });
+            };
+            let qweb = QWeb.render('TableCarsListWidget', widget_options)
+            var methods = $(qweb);
 
             if (slicedArray.length != 0) {
                 return methods;
@@ -209,7 +211,7 @@ odoo.define('pos_partner_cars',function(require) {
             self.set_counts('clear search');
         },
         prev_val: undefined,
-        search_partner_table: function(e) {
+        search_partner_table: function(e, hack_search) {
             var self = this;
             if (e.keyCode == 27) {
                 let cancel_button = $('.car-list-creation .footer .button.cancel:first');
@@ -217,9 +219,13 @@ odoo.define('pos_partner_cars',function(require) {
                     cancel_button.click();
                 }
             }
-            let val_now = $(e.currentTarget).val().toLowerCase();
-            if (val_now === this.prev_val && e.keyCode != 13) {
-                return;
+            let val_now = '';
+            if(!hack_search)
+            {
+                val_now = $(e.currentTarget).val().toLowerCase();
+                if (val_now === this.prev_val && e.keyCode != 13) {
+                    return;
+                }
             }
             this.current_page = 1;
             this.prev_val = val_now;
@@ -231,41 +237,57 @@ odoo.define('pos_partner_cars',function(require) {
                 var search_str = val_now;
                 var newThisIs = this;
                 var results = Array();
-                for (var i in self.pos.usr_cars) {
-                    var partner_det = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]);
+
+                var cars_to_search = [];
+                if (self.customerSelected && self.customerSelected != 'n'){
+                    let partner_id_to_search = self.customerSelected;
+                    cars_to_search = self.pos.usr_cars.filter((item)=>{
+                        return item.partner_id &&  item.partner_id[0] == partner_id_to_search;
+                    });
+                    console.log(cars_to_search.length, 55666);
+                }
+                else{
+                    cars_to_search = self.pos.usr_cars;
+                }
+                for (var car of cars_to_search) {
+                    var partner_det = undefined;
+                    if(car.partner_id)
+                    {
+                        partner_det = self.pos.db.get_partner_by_id(car.partner_id[0]);
+                    }
                     var partner_phone = '';
                     var car_brand = '';
                     var car_mod = '';
 
                     if (partner_det) {
-                        if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone) {
-                            partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).phone.toLowerCase();
-                        } else if (self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile) {
-                            partner_phone = self.pos.db.get_partner_by_id(self.pos.usr_cars[i].partner_id[0]).mobile.toLowerCase();
+                        if (partner_det.phone) {
+                            partner_phone = partner_det.phone.toLowerCase();
+                        } else if (partner_det.mobile) {
+                            partner_phone = partner_det.mobile.toLowerCase();
                         }
                     }
-                    if (self.pos.usr_cars[i].car_brand[1]) {
-                        car_brand = self.pos.usr_cars[i].car_brand[1].toLowerCase();
+                    if (car.car_brand[1]) {
+                        car_brand = car.car_brand[1].toLowerCase();
                     }
-                    if (self.pos.usr_cars[i].car_model) {
-                        car_mod = self.pos.usr_cars[i].car_model.toLowerCase();
+                    if (car.car_model) {
+                        car_mod = car.car_model.toLowerCase();
                     }
 
                     if (car_brand.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
-                    } else if (self.pos.usr_cars[i].partner_id[1].toLowerCase().indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                        results.push(car);
+                    } else if (car.partner_id[1].toLowerCase().indexOf(search_str) !== -1) {
+                        results.push(car);
                     } else if (car_mod.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
-                    } else if (self.pos.usr_cars[i].vehicle_no.toLowerCase().indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                        results.push(car);
+                    } else if (car.vehicle_no.toLowerCase().indexOf(search_str) !== -1) {
+                        results.push(car);
                     } else if (partner_phone.indexOf(search_str) !== -1) {
-                        results.push(self.pos.usr_cars[i]);
+                        results.push(car);
                     }
                 }
                 self.isSearch = true;
                 self.searchResult = results;
-                var car_list_widget = newThisIs.renderCarsTableList('server', results);
+                var car_list_widget = newThisIs.renderCarsTableList('local', results);
                 if (car_list_widget != 'n') {
                     $('.client-cars-list tbody').html('');
                     car_list_widget.appendTo($('.client-cars-list tbody'));
@@ -301,40 +323,62 @@ odoo.define('pos_partner_cars',function(require) {
                     }
                 }
             }
+            self.selected_car = selected_car;
             var methods = $(QWeb.render('TstCarReadingWidget', {
                 widget: this,
-                current_car: selected_car,
                 selected_car: selected_car
             }));
 
-            methods.find(".customer-next-oil-date").datepicker({
+            $(".customer-next-oil-date").datepicker({
                 minDate: 0
             });
-            methods.on('click', '.view-car-readings', function() {
+            return methods;
+        },
+        init: function(parent, options) {
+            var self = this;
+            this._super(parent, options);
+            $('body').on('click', '.view-car-readings', function() {
                 var readings = [];
+                let car_on_table_id = 0;
+                let selected_car = undefined;
+                if(self.selected_car)
+                {
+                    selected_car = self.selected_car;
+                    car_on_table_id = selected_car.id;
+                }
                 if (car_on_table_id && selected_car) {
                     readings = self.pos.cars_readings.filter((el) => {
                         let matching = el.car_id[0] == car_on_table_id;
                         return matching;
                     });
-                    for(let read in readings)
+                    for(let read of readings)
                     {
-                        read.create_date = date_time_format.process(read.create_date);
+                        try
+                        {
+                            if(read.create_date)
+                            {
+                                read.create_date = date_time_format.process(read.create_date);
+                            }
+                            else{
+                                read.create_date = '';
+                            }
+                        }
+                        catch(er){
+                            read.create_date = '';
+                        }
+
                     }
                     selected_car.car_readings = readings;
                 }
                 self.gui.show_popup('car_reading_widget', {
                     'car_readings': readings,
-                    current_car: selected_car,
                     selected_car: selected_car,
-                    'sam': '4566',
-                    'sam2': '8666',
                     'car_id': $("select.customer-car-reading-per-day").find(":selected").val(),
                     'car_brand': $("select.customer-car-reading-per-day").find(":selected").attr("brand"),
                     'car_vehicleno': $("select.customer-car-reading-per-day").find(":selected").attr("vehicleno")
                 })
             });
-            methods.on('keyup', '.customer-car-reading-expected, .customer-current-reading', function() {
+            $('body').on('keyup', '.customer-car-reading-expected, .customer-current-reading', function() {
                 var expected_reading = parseInt($('.customer-car-reading-expected').val());
                 var reading = parseInt($('.customer-current-reading').val());
                 var perday_reading = parseInt($('.customer-car-reading-per-day-input').val());
@@ -347,7 +391,6 @@ odoo.define('pos_partner_cars',function(require) {
                 result.setDate(result.getDate() + parseInt(expected_reading / perday_reading));
                 $(".customer-next-oil-date").datepicker("setDate", result);
             });
-            return methods;
         }
     })
 });
@@ -364,10 +407,9 @@ let date_time_format = {
         var todayTime = new Date();
         if (dt)
         {
-            console.log(typeof(dt));
             if(typeof(dt) == 'string')
             {
-                todayTime = new Date(dt)
+                todayTime = new Date(dt);
             }
             else{
                 todayTime = dt;

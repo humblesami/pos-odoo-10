@@ -42,6 +42,10 @@ odoo.define('pos_fast_load',function(require) {
                             {
                                 model.fields.push('loading_data_offline');
                             }
+                            if(model.model == 'res.partner')
+                            {
+                                console.log('\n\nPartners:' + model.fields[model.fields.length - 1]);
+                            }
                         }
                         if (model.ids) {
                             records = new Model(model.model).call('read',[ids,fields],context);

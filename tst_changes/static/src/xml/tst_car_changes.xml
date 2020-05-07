@@ -321,22 +321,19 @@
             </tr>
         </t>
         <t t-else="">
-            <t t-set="indexCounter" t-value="0"/>
-            <tr t-foreach="widget.usr_cars" t-as="car">
-                <t t-if="car.partner_id[0]==widget.customerSelected">
-                    <td><t t-esc="car.partner_id[1]" /></td>
-                    <t t-set="partner" t-value="widget.pos.db.get_partner_by_id(car.partner_id[0])" />
-                    <td><t t-esc='partner.phone or partner.mobile or ""' /></td>
-                    <td><t t-if="car.car_brand"><t t-esc="car.car_brand[1]" /></t></td>
-                    <td><t t-if="car.car_model"><t t-esc="car.car_model" /></t></td>
-                    <td><t t-esc="car.vehicle_no" /></td>
-                    <td>
-                        <t t-if="car.id!=widget.current_car_id and widget.check_car_available(car.id)==0">
-                        <span class="button highlight set-default-car" t-att-car-index-id="indexCounter" t-att-car-id="car.id" t-att-car-vehicle-no="car.vehicle_no" t-att-car-partner-id="car.partner_id[0]">Set Default Car</span>
-                        </t>
-                    </td>
-                </t>
-                <t t-set="indexCounter" t-value="indexCounter+1"/>
+            <tr t-foreach="slicedArr" t-as="car">
+
+                <td><t t-esc="car.partner_id[1]" /></td>
+                <t t-set="partner" t-value="widget.pos.db.get_partner_by_id(car.partner_id[0])" />
+                <td><t t-esc='partner.phone or partner.mobile or ""' /></td>
+                <td><t t-if="car.car_brand"><t t-esc="car.car_brand[1]" /></t></td>
+                <td><t t-if="car.car_model"><t t-esc="car.car_model" /></t></td>
+                <td><t t-esc="car.vehicle_no" /></td>
+                <td>
+                    <t t-if="car.id!=widget.current_car_id and widget.check_car_available(car.id)==0">
+                    <span class="button highlight set-default-car" t-att-car-index-id="indexCounter" t-att-car-id="car.id" t-att-car-vehicle-no="car.vehicle_no" t-att-car-partner-id="car.partner_id[0]">Set Default Car</span>
+                    </t>
+                </td>
             </tr>
         </t>
     </t>
@@ -345,17 +342,13 @@
             <div class="popup car-select-default car-list-creation ">
                 <div class="title">Select and Search Cars</div>
                 <div class="body">
-                    <t t-if="widget.customerSelected!='n'">
-                    <div class="search-default-cars" style="margin-bottom: 10px;">
-                        Please select Cars for
-                        <b>Customer:</b> <t t-esc="widget.customerSelectedName" />
-                    </div>
+                    <t t-if="widget.customerSelected != 'n'">
+                        <div class="search-default-cars" style="margin-bottom: 10px;">
+                            Please select Cars for
+                            <b>Customer:</b> <t t-esc="widget.customerSelectedName" />
+                        </div>
                     </t>
                     <div class="search-default-cars" style="margin-bottom: 10px;">
-                        <div t-if="widget.customerSelected!='n'" style="text-align: left;margin-bottom:5px;">
-                            <small style="font-size: 12px;">Enter your query and press enter</small>
-                            <a href="javascript:;" class="clear-search-result" style="display:none">Clear Search Result</a>
-                        </div>
                         <input type="text" placeholder="Search" class="input-search-car" />
                         <input type="hidden" class="input-set-car" />
                         <a href="javascript:;" last-show="0" class="show-last-twenty cars-paging">&lt; Show Last 20</a>

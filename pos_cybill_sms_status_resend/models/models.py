@@ -61,7 +61,7 @@ class SendSMS(models.Model):
                 rendered_sms_to = rendered_sms_to.replace('-', '')
 
         if rendered_sms_to:
-            send_url = gateway_url_id.gateway_url
+            send_url = gateway_url_id.gateway_url or 'http://api.bizsms.pk/api-send-branded-sms.aspx?username=totalsoft@bizsms.pk&pass=t1ot3lsfty*9*&text={message}&masking=Total%20Soft&destinationnum={mobile}&language=English'
             send_link = send_url.replace('{mobile}',rendered_sms_to).replace('{message}',sms_rendered_content_msg)
             response = requests.request("GET", url = send_link).text
             response = self.get_text_from_html(response)
@@ -123,15 +123,14 @@ class PosOrder(models.Model):
     @api.model
     def create(self, vals):
         res = super(PosOrder, self).create(vals)
-        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
+        sms_template = self.env['send_sms'].search([], limit=1)
+        body = 'Your POS Order is processed'
         if sms_template:
-            body = sms_template.sms_html or 'Your POS Order is processed'
+            body = sms_template.sms_html or body
         customer = self.env['res.partner'].browse(vals['partner_id'])
         if customer:
             customer_phone = customer.phone or customer.mobile
             if customer_phone:
-                if not body:
-                    body = 'Order created'
                 if '{userName}' in body:
                     body = body.replace('{userName}', customer.name)
                 phoneNum = '+92' + str(customer_phone)[1:]
