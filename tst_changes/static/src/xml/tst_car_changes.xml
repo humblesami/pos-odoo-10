@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<templates id="template" inherit_id="point_of_sale.template">
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" inherit_id="point_of_sale.template" xml:space="preserve">
     <t t-extend="ClientDetails">
         <t t-jquery=".edit-buttons .button.edit" t-operation="after">
             <div class="button add-car">
@@ -191,19 +191,20 @@
                                 <t t-set="counter" t-value="0" />
                                 <tr t-foreach="widget.car_readings" t-as="reading">
                                     <t t-if="reading.car_id[0]==widget.car_id">
-                                    <td><span t-esc="reading.per_day_reading" /></td>
-                                    <td><span t-esc="reading.current_reading" /></td>
-                                    <td><span t-esc="reading.create_date" /></td>
-                                    <td><span t-esc="reading.next_oil_change_km" /></td>
-                                    <td><span t-esc="reading.next_oil_change_date" /></td>
-                                    <td>
-                                        <t t-if="reading.pos_order_id">
-                                        <div class="button view-order" style="background-color:#6EC89B;color:#fff;font-weight:bold" t-att-order-id="reading.pos_order_id[0]">
-                                            View Order
-                                        </div>
-                                        </t>
-                                    </td>
-                                    <t t-set="counter" t-value="counter+1" />
+                                        <td><span t-esc="reading.per_day_reading" /></td>
+                                        <td><span t-esc="reading.current_reading" /></td>
+                                        <td><span t-esc="reading.car_per_day_read_expect" /></td>
+                                        <td><span t-esc="reading.create_date" /></td>
+                                        <td><span t-esc="reading.next_oil_change_km" /></td>
+                                        <td><span t-esc="reading.next_oil_change_date" /></td>
+                                        <td>
+                                            <t t-if="reading.pos_order_id">
+                                            <div class="button view-order" style="background-color:#6EC89B;color:#fff;font-weight:bold" t-att-order-id="reading.pos_order_id[0]">
+                                                View Order
+                                            </div>
+                                            </t>
+                                        </td>
+                                        <t t-set="counter" t-value="counter+1" />
                                     </t>
                                 </tr>
                                 <t t-if="counter==0">
@@ -346,12 +347,12 @@
                 <div class="body">
                     <t t-if="widget.customerSelected!='n'">
                     <div class="search-default-cars" style="margin-bottom: 10px;">
-                        Please select Cars for<br />
+                        Please select Cars for
                         <b>Customer:</b> <t t-esc="widget.customerSelectedName" />
                     </div>
                     </t>
                     <div class="search-default-cars" style="margin-bottom: 10px;">
-                        <div style="text-align: left;margin-bottom:5px;">
+                        <div t-if="widget.customerSelected!='n'" style="text-align: left;margin-bottom:5px;">
                             <small style="font-size: 12px;">Enter your query and press enter</small>
                             <a href="javascript:;" class="clear-search-result" style="display:none">Clear Search Result</a>
                         </div>

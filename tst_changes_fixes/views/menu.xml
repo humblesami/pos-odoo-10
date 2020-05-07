@@ -1,0 +1,20 @@
+<odoo>
+    <data>
+        <menuitem id="tst_menu_cars"
+            name="POS Cars"
+            parent="point_of_sale.menu_point_root"
+            sequence="99"
+        />
+        <menuitem id="tst_changes.tst_menu_customer_cars"
+                  name="Customer Cars"
+                  parent="tst_menu_cars" />
+        <menuitem id="tst_changes.tst_cars_brands_configuration_menu"
+                  name="Cars Brands"
+                  parent="tst_menu_cars" />
+        <menuitem id="tst_menu_car_readings"
+                  name="Car Readings"
+                  action="action_car_readings"
+                  parent="tst_menu_cars"
+        />
+    </data>
+</odoo>

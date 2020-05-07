@@ -118,32 +118,33 @@ class SendSMS(models.Model):
 
 class PosOrder(models.Model):
     _inherit = 'pos.order'
+    message_sent = fields.Boolean("Message Sent")
 
     @api.model
     def create(self, vals):
         res = super(PosOrder, self).create(vals)
         sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
         if sms_template:
-            body = sms_template.sms_html
+            body = sms_template.sms_html or 'Your POS Order is processed'
+        customer = self.env['res.partner'].browse(vals['partner_id'])
+        if customer:
+            customer_phone = customer.phone or customer.mobile
+            if customer_phone:
+                if not body:
+                    body = 'Order created'
+                if '{userName}' in body:
+                    body = body.replace('{userName}', customer.name)
+                phoneNum = '+92' + str(customer_phone)[1:]
+                sms_id = self.env['sms.compose'].create({
+                    'template_id': sms_template.id,
+                    'body_text': body,
+                    'sms_to_lead': phoneNum
+                })
 
-            customer = self.env['res.partner'].browse(vals['partner_id'])
-            if customer:
-                customer_phone = customer.phone or customer.mobile
-                if customer_phone:
-                    if not body:
-                        body = 'Order created'
-                    if '{userName}' in body:
-                        body = body.replace('{userName}', customer.name)
-                    phoneNum = '+92' + str(customer_phone)[1:]
-                    sms_id = self.env['sms.compose'].create({
-                        'template_id': sms_template.id,
-                        'body_text': body,
-                        'sms_to_lead': phoneNum
-                    })
-
-                    if sms_id:
-                        sms = self.env['sms.compose'].browse(sms_id.id)
-                        sms.send_sms_action_pos(res.ids)
+                if sms_id:
+                    sms = self.env['sms.compose'].browse(sms_id.id)
+                    message_sent = sms.send_sms_action_pos(res.ids)
+                    res.message_sent = message_sent
         return res
 
 

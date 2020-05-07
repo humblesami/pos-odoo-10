@@ -130,6 +130,8 @@ class TSTUserCarsAddBrands(models.Model):
 
 class TSTCarReadings(models.Model):
     _name = "user.cars.readings"
+    _rec_name = 'car_id'
+    _order = 'create_date desc'
 
     per_day_reading = fields.Float("Car Reading Per Days")
     current_reading = fields.Float("Current Reading")

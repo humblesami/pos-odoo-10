@@ -1,5 +1,5 @@
 from odoo import models, fields, exceptions, api, tools, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from functools import partial
 import pytz
 from datetime import timedelta
@@ -28,7 +28,6 @@ class TSTInheritPosOrder(models.Model):
     next_oil_change_date = fields.Date("Next Oil Change Date")
     car_per_day_read_expect = fields.Integer("Expected Car Reading After KM")
     order_id = fields.Many2one("pos.order", string="POS Order")
-    message_sent = fields.Boolean("Message Sent")
 
     @api.model
     def create(self, values):
@@ -42,26 +41,17 @@ class TSTInheritPosOrder(models.Model):
             values['name'] = self.env['ir.sequence'].next_by_code('pos.order')
 
         getCreate = super(TSTInheritPosOrder, self).create(values)
-        if values['reading_id']:
-            self.env['user.cars.readings'].browse(values['reading_id']).write({ 'pos_order_id':getCreate.id })
-        sms_template = self.env['send_sms'].search([('name','=','POS Order Creation')], limit=1)
-        if sms_template:
-            body = sms_template.sms_html
-
-            customer = self.env['res.partner'].browse(values['partner_id'])
-            if customer:
-                if customer.phone:
-                    body = body.replace('{userName}',customer.name)
-                    phoneNum = '+92' + str(customer.phone)[1:]
-                    sms_id = self.env['sms.compose'].create({
-                                    'template_id': sms_template.id,
-                                    'body_text': body,
-                                    'sms_to_lead': phoneNum
-                                    })
-
-                    if sms_id:
-                        self.env['sms.compose'].browse(sms_id.id).send_sms_action_pos(getCreate.ids)
-
+        reading_vals = {
+            'next_oil_change_date': values.get('next_oil_change_date'),
+            'next_oil_change_km': values.get('next_oil_km'),
+            'current_reading': values.get('current_reading'),
+            'per_day_reading':values.get('per_day_reading'),
+            'car_per_day_read_expect':values.get('car_per_day_read_expect'),
+            'car_id': values.get('car_id'),
+            'pos_order_id': getCreate.id,
+        }
+        reading = self.env['user.cars.readings'].browse(values['reading_id'])
+        reading.pos_order_id = getCreate.id
         return getCreate
 
     @api.multi
@@ -91,16 +81,18 @@ class TSTInheritPosOrder(models.Model):
                 terms.append((0, 0, vals))
 
             values = {}
-            values['per_day_reading'] = ui_order['car_reading']
-            values['current_reading'] = ui_order['car_current_reading']
+            values['per_day_reading'] = ui_order['per_day_reading']
+            values['current_reading'] = ui_order['current_reading']
             values['next_oil_change_km'] = ui_order['next_oil_change']
             values['next_oil_change_date'] = ui_order['next_oil_change_date']
             values['car_per_day_read_expect'] = ui_order['car_per_day_read_expect'] if 'car_per_day_read_expect' in ui_order else ''
             values['car_id'] = ui_order['selected_car'] if 'selected_car' in ui_order else ''
             values['pos_order_id'] = False
-
-            reading_id = self.env['user.cars.readings'].create(values)
-
+            try:
+                reading_id = self.env['user.cars.readings'].create(values)
+            except Exception as e:
+                print (str(e))
+                raise ValidationError(e)
         return {
             'name': ui_order['name'],
             'user_id': ui_order['user_id'] or False,
@@ -112,11 +104,12 @@ class TSTInheritPosOrder(models.Model):
             'fiscal_position_id': ui_order['fiscal_position_id'],
             'employees_ids': terms,
             'car_id': ui_order['selected_car'] if 'selected_car' in ui_order else '',
-            'per_day_reading': ui_order['car_reading'] if 'car_reading' in ui_order else '',
-            'current_reading': ui_order['car_current_reading'] if 'car_current_reading' in ui_order else '',
+            'per_day_reading': ui_order['per_day_reading'] if 'per_day_reading' in ui_order else '',
+            'current_reading': ui_order['current_reading'] if 'current_reading' in ui_order else '',
+            'car_per_day_read_expect': ui_order['car_per_day_read_expect'] if 'car_per_day_read_expect' in ui_order else '',
             'next_oil_change_km': ui_order['next_oil_change'] if 'next_oil_change' in ui_order else '',
             'next_oil_change_date': ui_order['next_oil_change_date'] if 'next_oil_change_date' in ui_order else '',
-            'reading_id': False
+            'reading_id': reading_id.id if reading_id else False
         }
 
 class TSTPOSConfigInherit(models.Model):

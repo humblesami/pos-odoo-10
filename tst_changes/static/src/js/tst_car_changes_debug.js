@@ -38,7 +38,7 @@ odoo.define('pos_product_creation', function(require) {
 
     models.load_models({
         model: 'user.cars.readings',
-        fields: ['per_day_reading', 'current_reading', 'next_oil_change_km', 'next_oil_change_date', 'car_id', 'id', 'create_date', 'pos_order_id'],
+        fields: ['per_day_reading', 'current_reading', 'car_per_day_read_expect', 'next_oil_change_km', 'next_oil_change_date', 'car_id', 'id', 'create_date', 'pos_order_id'],
         loaded: function(self, cars_readings) {
             self.cars_readings = cars_readings;
         },
@@ -529,10 +529,12 @@ odoo.define('pos_product_creation', function(require) {
             order.selected_employees = employees
             order.selected_car = $("[name='select-car-model']").val();
 
-            order.car_reading = $("[name='car-reading-per-day']").val();
-            order.car_current_reading = $("[name='car-current-reading']").val();
-            order.next_oil_change = $("[name='car-next-oil-change']").val();
+            order.per_day_reading = $("[name='car-reading-per-day']").val();
+            order.current_reading = $("[name='car-current-reading']").val();
             order.next_oil_change_date = $("[name='car-next-oil-date']").val();
+
+            order.next_oil_change = $("[name='car-next-oil-change']").val();
+            order.car_per_day_read_expect = $("[name='car-reading-per-expected']").val();
 
             orders.push({
                 id: order_id,
@@ -544,9 +546,10 @@ odoo.define('pos_product_creation', function(require) {
             readaingNew.car_id = []
             readaingNew.car_id[0] = $("[name='select-car-model']").val();
             readaingNew.current_reading = $("[name='car-current-reading']").val();
-            readaingNew.next_oil_change_date = $("[name='car-current-reading']").val();
+            readaingNew.per_day_reading = $("[name='car-reading-per-day']").val();
             readaingNew.next_oil_change_km = $("[name='car-next-oil-change']").val();
-            readaingNew.per_day_reading = $("[name='car-next-oil-date']").val();
+            readaingNew.next_oil_change_date = $("[name='car-next-oil-date']").val();
+            readaingNew.car_per_day_read_expect = $('[name="car-reading-per-expected"]').val()
             readaingNew.create_date = new Date();
             self.posmodel.cars_readings.push(readaingNew);
 
@@ -1297,6 +1300,7 @@ odoo.define('pos_product_creation', function(require) {
         },
         renderCarsTableList: function(s_type, arr) {
             var self = this;
+            console.log(slicedArray,5588);
             var slicedArray, methods;
             if (s_type == "server") {
                 slicedArray = arr.slice(this.pagingLastShowCar, this.pagingNextShowCar);
@@ -1308,7 +1312,6 @@ odoo.define('pos_product_creation', function(require) {
                 }));
             } else {
                 slicedArray = self.pos.usr_cars.slice(this.pagingLastShowCar, this.pagingNextShowCar);
-                console.log(slicedArray,5588);
                 methods = $(QWeb.render('TableCarsListWidget', {
                     widget: this,
                     slicedArr: slicedArray,
