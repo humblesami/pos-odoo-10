@@ -1,2 +1,2 @@
-import inherit
-import model
+from . import inherit
+from . import model

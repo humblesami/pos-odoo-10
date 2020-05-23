@@ -168,6 +168,5 @@
                 </p>
             </field>
         </record>
-        <menuitem id="tst_cars_brands_configuration_menu" name="Car Brands" parent="point_of_sale.menu_point_root" sequence="100" action="tst_cars_brands_configuration_action" />
     </data>
 </odoo>

@@ -10,11 +10,16 @@
                   parent="tst_menu_cars" />
         <menuitem id="tst_changes.tst_cars_brands_configuration_menu"
                   name="Cars Brands"
+                  action="tst_changes.tst_cars_brands_configuration_action"
                   parent="tst_menu_cars" />
         <menuitem id="tst_menu_car_readings"
                   name="Car Readings"
                   action="action_car_readings"
                   parent="tst_menu_cars"
         />
+        <menuitem id="tst_changes.tst_menu_point_rep"
+                  name="Car Maintenance History"
+                  parent="tst_menu_cars"
+                  action="tst_changes.tst_action_batch_action_dialogue" />
     </data>
 </odoo>
