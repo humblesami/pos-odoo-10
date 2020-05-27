@@ -1049,7 +1049,7 @@ odoo.define('pos_product_creation', function(require) {
 
             this.el.querySelector('.default-partner-car').addEventListener('click', function() {
                 var currentCar = '';
-                if (self.pos.table && self.pos.table.currentCar) {
+                if (self.pos.table.currentCar) {
                     if (self.pos.table.currentCar['id']) {
                         currentCar = self.pos.table.currentCar;
                     }

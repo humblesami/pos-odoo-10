@@ -98,6 +98,7 @@
         <record id="tst_customer_cars_action" model="ir.actions.act_window">
             <field name="name">Customer Cars</field>
             <field name="res_model">user.cars</field>
+            <field name="view_type">form</field>
 			<field name="view_mode">tree,form</field>
 			<field name="view_id" eval="False"/>
             <field name="help" type="html">
@@ -158,6 +159,7 @@
         <record id="tst_cars_brands_configuration_action" model="ir.actions.act_window">
             <field name="name">Car Brands</field>
             <field name="res_model">user.cars.brands</field>
+            <field name="view_type">form</field>
 			<field name="view_mode">tree,form</field>
 			<field name="view_id" eval="False"/>
             <field name="help" type="html">
@@ -166,5 +168,6 @@
                 </p>
             </field>
         </record>
+        <menuitem id="tst_cars_brands_configuration_menu" name="Car Brands" parent="point_of_sale.menu_point_root" sequence="100" action="tst_cars_brands_configuration_action" />
     </data>
 </odoo>

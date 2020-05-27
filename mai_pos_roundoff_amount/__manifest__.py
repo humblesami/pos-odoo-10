@@ -11,7 +11,7 @@
     'description': "Using this module you can set auto up and down rounding Digits and Points based. Here there is a button for enable Rounding using this u can enable Rounding. And here Once you enable rounding AUTO UP and DOWN rounding will be apply.",
     'license': 'OPL-1', 
     'category': 'Point Of Sale',
-    'depends': ['base', 'point_of_sale'],
+    'depends': ['base', 'point_of_sale', 'pos_discount'],
     'data': [
         'views/point_of_sale.xml',
         'views/mai_pos_roundoff_amount.xml'

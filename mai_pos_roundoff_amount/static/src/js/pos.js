@@ -113,9 +113,6 @@ var round_di = utils.round_decimals;
                     }
                 }
             }
-			if(this.wk_get_discount() != 0){
-                //change = change - this.wk_get_discount();
-                }
             return round_pr(Math.max(0,change), this.pos.currency.rounding);
         },
         getNetTotalTaxIncluded: function() {
@@ -142,10 +139,10 @@ var round_di = utils.round_decimals;
         },
         get_due: function(paymentline) {
             if (!paymentline) {
-                var due = this.getNetTotalTaxIncluded() - this.get_total_paid();
-				if(this.wk_get_discount() != 0){
-                    //due = due - this.wk_get_discount();
-                    }
+//                var due = this.getNetTotalTaxIncluded() - this.get_total_paid();
+//				if(this.wk_get_discount() != 0){
+//                    //due = due - this.wk_get_discount();
+//                    }
             } else {
                 var due = this.getNetTotalTaxIncluded();
                 var lines = this.paymentlines.models;

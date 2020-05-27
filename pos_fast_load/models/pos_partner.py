@@ -11,8 +11,11 @@ class ResPartnerTSTInherit(models.Model):
         res = super(ResPartnerTSTInherit, self).search(domain, offset, limit, order, count=False)
         last_field = fields[len(fields) - 1]
         if len(res) < 200 or last_field != 'loading_data_offline':
+            print ('\n\n\nLoading '+str(len(res))+' customer(s) normally ' + str(datetime.now()))
             res = super(ResPartnerTSTInherit, self).search_read(domain, fields, offset=offset or 0, limit=limit or False, order=order or False)
+            print ('Loaded customer normally ' + str(datetime.now()) + '\n\n\n')
             return res
+        print ('\n\n\nLoading customer fast ' + str(datetime.now()))
         cr = self._cr
         query = """
                 SELECT distinct rp.name as name,rp.id,rp.mobile,rp.barcode,
@@ -28,6 +31,7 @@ class ResPartnerTSTInherit(models.Model):
         """
         cr.execute(query)
         partners = cr.dictfetchall()
+        print ('Loaded customer fast 1 ' + str(datetime.now()) + '\n')
         partner_ids = []
         partners_dict = {}
         for customer in partners:
