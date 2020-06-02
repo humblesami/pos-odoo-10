@@ -1,3 +1,5 @@
+from dateutil.parser import parser
+
 from odoo import models, fields, exceptions, api, tools, _
 from odoo.exceptions import UserError, ValidationError
 from functools import partial
@@ -64,27 +66,50 @@ class TSTInheritPosOrder(models.Model):
     def _order_fields(self, ui_order):
         process_line = partial(self.env['pos.order.line']._order_line_fields)
         terms = []
-
+        values = {}
+        values['per_day_reading'] = ui_order.get('per_day_reading') or False
+        values['current_reading'] = ui_order.get('current_reading') or False
+        values['next_oil_change_km'] = ui_order.get('next_oil_change') or False
+        values['next_oil_change_date'] = ui_order.get('next_oil_change_date') or False
+        values['car_per_day_read_expect'] = ui_order.get('car_per_day_read_expect') or False
+        values['car_id'] = ui_order.get('selected_car') or False
+        values['pos_order_id'] = False
+        reading_id = None
         if 'selected_employees' in ui_order:
             for emp in ui_order['selected_employees']:
                 vals = {}
                 vals['emp_id'] = emp
                 terms.append((0, 0, vals))
-
-            values = {}
-            values['per_day_reading'] = ui_order['per_day_reading']
-            values['current_reading'] = ui_order['current_reading']
-            values['next_oil_change_km'] = ui_order['next_oil_change']
-            values['next_oil_change_date'] = ui_order['next_oil_change_date']
-            values['car_per_day_read_expect'] = ui_order['car_per_day_read_expect'] if 'car_per_day_read_expect' in ui_order else ''
-            values['car_id'] = ui_order['selected_car'] if 'selected_car' in ui_order else ''
-            values['pos_order_id'] = False
             try:
-                reading_id = self.env['user.cars.readings'].create(values)
+                if values.get('car_id'):
+                    if values.get('next_oil_change_date'):
+                        try:
+                            values['next_oil_change_date'] = parser.parse(values.get('next_oil_change_date'))
+                            values['next_oil_change_date'] = values['next_oil_change_date'].date()
+                            values['next_oil_change_date'] = str(values['next_oil_change_date'])
+                        except:
+                            pass
+                    reading_id = self.env['user.cars.readings'].create(values)
+                    cars_model = self.env['user.cars']
+                    res = cars_model.search([('id', '=', values['car_id'])]).read()
+                    if len(res):
+                        res = res[0]
+                        car_values = {}
+                        field_count = 0
+                        if not res.get('car_reading_per_day'):
+                            if values.get('per_day_reading'):
+                                car_values['car_reading_per_day'] = values['per_day_reading']
+                                field_count += 1
+                        if not res.get('oil_change_after_reading'):
+                            if values.get('next_oil_change_date'):
+                                car_values['oil_change_after_reading'] = values['next_oil_change_date']
+                                field_count += 1
+                        if field_count:
+                            cars_model.write(car_values)
             except Exception as e:
                 print (str(e))
                 raise ValidationError(e)
-        return {
+        res = {
             'name': ui_order['name'],
             'user_id': ui_order['user_id'] or False,
             'session_id': ui_order['pos_session_id'],
@@ -94,19 +119,26 @@ class TSTInheritPosOrder(models.Model):
             'date_order': ui_order['creation_date'],
             'fiscal_position_id': ui_order['fiscal_position_id'],
             'employees_ids': terms,
-            'car_id': ui_order['selected_car'] if 'selected_car' in ui_order else '',
-            'per_day_reading': ui_order['per_day_reading'] if 'per_day_reading' in ui_order else '',
-            'current_reading': ui_order['current_reading'] if 'current_reading' in ui_order else '',
-            'car_per_day_read_expect': ui_order['car_per_day_read_expect'] if 'car_per_day_read_expect' in ui_order else '',
-            'next_oil_change_km': ui_order['next_oil_change'] if 'next_oil_change' in ui_order else '',
-            'next_oil_change_date': ui_order['next_oil_change_date'] if 'next_oil_change_date' in ui_order else '',
+            'amount_tax': ui_order.get('amount_tax') or False,
+            'amount_total': ui_order.get('amount_total') or False,
+            'amount_paid': ui_order.get('amount_paid') or False,
+            'amount_return': ui_order.get('amount_return') or False,
+            'car_id': values['car_id'],
+            'per_day_reading': values['per_day_reading'],
+            'current_reading': values['current_reading'],
+            'car_per_day_read_expect': values['car_per_day_read_expect'],
+            'next_oil_change_km': values['next_oil_change_km'],
+            'next_oil_change_date': values['next_oil_change_date'],
             'reading_id': reading_id.id if reading_id else False
         }
+        return res
+
 
 class TSTPOSConfigInherit(models.Model):
     _inherit = "pos.config"
 
     reciept_logo = fields.Binary('Logo')
+
 
 class TSTPOSResPartner(models.Model):
     _inherit = "res.partner"

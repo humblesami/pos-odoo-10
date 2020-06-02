@@ -931,16 +931,25 @@ odoo.define('pos_product_creation', function(require) {
                         self.gui.back();
                     }
                 } else {
+                    let car_id = '';
+                    if(self.pos.table && self.pos.table.currentCar)
+                    {
+                        car_id = self.pos.table.currentCar['id'];
+                    }
                     self.gui.show_popup('car_customer_search_widget', {
                         'usr_cars': self.pos.usr_cars,
                         'partners': self.pos.partners,
-                        'current_car_id': ((self.pos.table.currentCar) ? self.pos.table.currentCar['id'] : ''),
+                        'current_car_id': car_id,
                         'customerSelected': this.new_client.id,
                         'customerSelectedName': this.new_client.name
                     });
                 }
 
-                var currTableId = self.pos.table.id;
+                var currTableId = '';
+                if(self.pos.table)
+                {
+                    currTableId = self.pos.table.id;
+                }
                 if (!self.pos.tables_by_id[currTableId].currentCustomer || !this.new_client) {
                     self.pos.tables_by_id[currTableId].currentCustomer = [];
                 }
@@ -970,7 +979,11 @@ odoo.define('pos_product_creation', function(require) {
     });
     screens.ReceiptScreenWidget.include({
         render_receipt: function() {
-            var currentCar = this.pos.tables_by_id[this.pos.table.id].currentCar;
+            var currentCar = undefined;
+            if(this.pos.table)
+            {
+                currentCar = this.pos.table.currentCar;
+            }
             if (!currentCar) {
                 alert('No car selected');
                 return;
